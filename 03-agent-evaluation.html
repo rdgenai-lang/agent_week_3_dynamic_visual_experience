@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agent Evaluation — Visual Explainer</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --orange:#E87A2E;--orange-dark:#D06A20;--orange-light:#F5943E;--orange-glow:rgba(232,122,46,0.12);
+  --navy:#2B2D42;--navy-dark:#1A1B2E;
+  --bg:#F3EDE7;--bg-card:#FFFFFF;--bg-light:#F9F5F0;
+  --text-primary:#2B2D42;--text-secondary:#6B6D7B;--text-muted:#9597A6;
+  --border:#E5DDD4;--green:#4CAF50;--green-light:#E8F5E9;--blue:#4285F4;--purple:#7C4DFF;--red:#EF5350;--amber:#FFA726;
+  --shadow-sm:0 2px 8px rgba(43,45,66,0.06);--shadow-md:0 8px 24px rgba(43,45,66,0.08);
+  --shadow-lg:0 16px 48px rgba(43,45,66,0.12);
+  --radius:14px;--radius-sm:8px
+}
+html{scroll-behavior:smooth}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text-primary);min-height:100vh;padding-bottom:3rem;-webkit-font-smoothing:antialiased}
+
+.top-logo-bar{background:var(--bg-card);border-bottom:1px solid var(--border);padding:0.9rem 2rem;display:flex;justify-content:space-between;align-items:center;box-shadow:var(--shadow-sm)}
+.brand-name{font-family:'DM Serif Display',serif;font-size:1.2rem;color:var(--navy)}
+.brand-name em{font-style:normal;color:var(--orange)}
+.brand-tag{font-size:0.68rem;color:var(--text-muted);font-weight:500;letter-spacing:0.04em;margin-top:0.1rem}
+.logo-wrap{width:44px;height:44px;display:flex;align-items:center;justify-content:center}
+.logo-wrap img{width:100%;height:100%;object-fit:contain}
+
+.hero-head{max-width:1160px;margin:2.5rem auto 2rem;padding:0 2rem;text-align:center}
+.hero-badge{display:inline-flex;align-items:center;gap:0.45rem;padding:0.4rem 1rem;border-radius:50px;background:var(--orange-glow);color:var(--orange);font-size:0.7rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:1rem}
+.hero-badge .dot{width:7px;height:7px;border-radius:50%;background:var(--orange);animation:pulse 2s infinite}
+.hero-head h1{font-family:'DM Serif Display',serif;font-size:clamp(1.9rem,3.6vw,2.8rem);line-height:1.18;color:var(--navy);margin-bottom:0.7rem}
+.hero-head h1 em{font-style:normal;color:var(--orange)}
+.hero-head p{font-size:0.98rem;color:var(--text-secondary);line-height:1.65;max-width:620px;margin:0 auto}
+
+.container{max-width:1160px;margin:0 auto;padding:0 2rem}
+
+.step-bar{display:flex;align-items:center;justify-content:center;gap:0;margin:2rem auto 2.5rem;flex-wrap:wrap;max-width:820px}
+.step-pill{display:flex;align-items:center;gap:0.5rem;padding:0.45rem 1rem;border-radius:50px;background:var(--bg-card);border:1.5px solid var(--border);font-size:0.78rem;font-weight:600;color:var(--text-secondary);cursor:pointer;transition:all 0.25s;margin:0.25rem}
+.step-pill.active{background:var(--orange);color:#fff;border-color:var(--orange);box-shadow:0 4px 14px rgba(232,122,46,0.3)}
+.step-pill.done{background:var(--green-light);color:var(--green);border-color:#A5D6A7}
+.step-pill .step-num{width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,0.06);display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:800}
+.step-pill.active .step-num{background:rgba(255,255,255,0.25)}
+.step-pill.done .step-num{background:rgba(76,175,80,0.2)}
+
+.scene-card{background:var(--bg-card);border-radius:var(--radius);box-shadow:var(--shadow-md);overflow:hidden;border:1px solid var(--border)}
+.scene-head{padding:1.6rem 2rem 1rem;border-bottom:1px solid var(--border);background:var(--bg-light)}
+.scene-step-label{font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--orange);margin-bottom:0.4rem}
+.scene-head h2{font-family:'DM Serif Display',serif;font-size:1.55rem;color:var(--navy);margin-bottom:0.3rem;line-height:1.25}
+.scene-head p{font-size:0.9rem;color:var(--text-secondary);line-height:1.6;max-width:780px}
+
+.stage{position:relative;background:linear-gradient(135deg,#FAF6F1 0%,#F3EDE7 100%);height:520px;overflow:hidden}
+.stage svg{width:100%;height:100%;display:block}
+
+.legend{display:flex;flex-wrap:wrap;gap:0.6rem 1.2rem;padding:1rem 2rem;background:var(--bg-light);border-top:1px solid var(--border);font-size:0.78rem;color:var(--text-secondary)}
+.legend-item{display:inline-flex;align-items:center;gap:0.4rem}
+.legend-dot{width:11px;height:11px;border-radius:50%;flex-shrink:0}
+
+.scene-body{padding:1.6rem 2rem 1.8rem;display:grid;grid-template-columns:1.3fr 1fr;gap:1.6rem;align-items:start}
+.scene-body .narration h3{font-family:'DM Serif Display',serif;font-size:1.1rem;color:var(--navy);margin-bottom:0.5rem}
+.scene-body .narration p{font-size:0.88rem;color:var(--text-secondary);line-height:1.7;margin-bottom:0.8rem}
+.scene-body .narration p strong{color:var(--navy);font-weight:700}
+.scene-body .narration p em{font-style:normal;color:var(--orange);font-weight:600}
+.recap-box{background:var(--navy-dark);color:#fff;border-radius:var(--radius-sm);padding:1.1rem 1.2rem}
+.recap-box h4{font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--orange-light);margin-bottom:0.6rem}
+.recap-box ul{list-style:none;padding:0}
+.recap-box li{font-size:0.82rem;color:rgba(255,255,255,0.85);line-height:1.55;padding:0.3rem 0;display:flex;align-items:flex-start;gap:0.5rem}
+.recap-box li::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--orange);margin-top:0.5rem;flex-shrink:0}
+
+.controls{display:flex;justify-content:space-between;align-items:center;padding:1.1rem 2rem;background:var(--bg-light);border-top:1px solid var(--border);gap:1rem;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:0.45rem;padding:0.65rem 1.4rem;border-radius:10px;font-size:0.85rem;font-weight:600;cursor:pointer;border:none;font-family:inherit;transition:all 0.2s}
+.btn-primary{background:var(--orange);color:#fff}
+.btn-primary:hover{background:var(--orange-dark);transform:translateY(-1px);box-shadow:0 4px 14px rgba(232,122,46,0.3)}
+.btn-primary:disabled{background:var(--text-muted);cursor:not-allowed;transform:none;box-shadow:none}
+.btn-outline{background:#fff;color:var(--navy);border:1.5px solid var(--border)}
+.btn-outline:hover{border-color:var(--orange);color:var(--orange)}
+.btn-outline:disabled{color:var(--text-muted);cursor:not-allowed;opacity:0.5}
+.replay-btn{background:transparent;color:var(--orange);border:1.5px dashed var(--orange);padding:0.55rem 1.1rem;border-radius:10px;font-weight:600;font-size:0.82rem;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:0.4rem}
+.replay-btn:hover{background:var(--orange-glow)}
+
+.node-label{font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:13px;fill:#fff;text-anchor:middle;pointer-events:none}
+.node-sub{font-family:'Plus Jakarta Sans',sans-serif;font-weight:500;font-size:10px;fill:rgba(255,255,255,0.85);text-anchor:middle;pointer-events:none}
+.node-tag{font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;font-size:9.5px;fill:var(--text-muted);text-anchor:middle;text-transform:uppercase;letter-spacing:0.06em;pointer-events:none}
+.user-bubble{font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;fill:var(--navy);font-weight:500;text-anchor:middle}
+.bg-grid{stroke:rgba(43,45,66,0.04);stroke-width:1;fill:none}
+
+.fade-el{opacity:0;transition:opacity 0.6s ease}
+.fade-el.show{opacity:1}
+
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+@keyframes scoreGrow{from{height:0}to{height:var(--target-height)}}
+
+@media(max-width:880px){
+  .scene-body{grid-template-columns:1fr}
+  .stage{height:440px}
+}
+@media(max-width:600px){
+  .scene-head{padding:1.2rem 1.2rem 0.8rem}
+  .scene-head h2{font-size:1.25rem}
+  .scene-body{padding:1.2rem}
+  .controls{padding:1rem 1.2rem}
+  .stage{height:380px}
+  .top-logo-bar{padding:0.7rem 1rem}
+  .hero-head{padding:0 1.2rem;margin-top:1.5rem}
+  .container{padding:0 1rem}
+}
+</style>
+</head>
+<body>
+
+<div class="top-logo-bar">
+  <div>
+    <div class="brand-name">Moksh<em>Path</em></div>
+    <div class="brand-tag">AI-NATIVE LEARNING</div>
+  </div>
+  <div class="logo-wrap">
+    <img src="logo.svg" alt="MokshPath logo">
+  </div>
+</div>
+
+<div class="hero-head">
+  <div class="hero-badge"><span class="dot"></span> Module 03 · Visual Explainer</div>
+  <h1>Agent <em>Evaluation</em></h1>
+  <p>Discover how to measure if your AI agent is actually good — using DeepEval, RAGAS, task completion checks, plus latency and cost tracking. No guesswork, just numbers.</p>
+</div>
+
+<div class="container">
+
+  <div class="step-bar" id="stepBar">
+    <div class="step-pill" data-step="1"><span class="step-num">1</span> Why evaluate?</div>
+    <div class="step-pill" data-step="2"><span class="step-num">2</span> DeepEval</div>
+    <div class="step-pill" data-step="3"><span class="step-num">3</span> RAGAS</div>
+    <div class="step-pill" data-step="4"><span class="step-num">4</span> Task completion</div>
+    <div class="step-pill" data-step="5"><span class="step-num">5</span> Latency &amp; cost</div>
+  </div>
+
+  <div class="scene-card">
+    <div class="scene-head">
+      <div class="scene-step-label" id="stepLabel">STEP 1 OF 5</div>
+      <h2 id="stepTitle">Why evaluate an agent?</h2>
+      <p id="stepIntro">An agent that "feels right" in demos can fail badly in production. Evaluation turns vibes into measurable scores you can track over time.</p>
+    </div>
+
+    <div class="stage">
+      <svg viewBox="0 0 900 520" xmlns="http://www.w3.org/2000/svg" id="stageSvg">
+        <defs>
+          <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+            <path d="M 40 0 L 0 0 0 40" class="bg-grid"/>
+          </pattern>
+          <linearGradient id="agentGrad" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0" stop-color="#E87A2E"/>
+            <stop offset="1" stop-color="#D06A20"/>
+          </linearGradient>
+          <linearGradient id="judgeGrad" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0" stop-color="#7C4DFF"/>
+            <stop offset="1" stop-color="#5B2FE0"/>
+          </linearGradient>
+          <linearGradient id="greenGrad" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0" stop-color="#4CAF50"/>
+            <stop offset="1" stop-color="#2E7D32"/>
+          </linearGradient>
+          <linearGradient id="blueGrad" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0" stop-color="#4285F4"/>
+            <stop offset="1" stop-color="#2962CC"/>
+          </linearGradient>
+          <linearGradient id="amberGrad" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0" stop-color="#FFA726"/>
+            <stop offset="1" stop-color="#F57C00"/>
+          </linearGradient>
+          <filter id="soft" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="6" result="blur"/>
+            <feOffset dy="3"/>
+            <feComponentTransfer><feFuncA type="linear" slope="0.2"/></feComponentTransfer>
+            <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+
+        <rect width="900" height="520" fill="url(#grid)"/>
+
+        <!-- ========== STEP 1: WHY EVALUATE ========== -->
+        <g id="whyEvalGroup" class="fade-el">
+          <!-- Two scenarios side by side -->
+          <text x="450" y="35" text-anchor="middle" font-family="DM Serif Display" font-size="18" fill="#2B2D42">Same question, two answers — which is correct?</text>
+
+          <!-- Question -->
+          <g transform="translate(280, 60)">
+            <rect x="0" y="0" width="340" height="40" rx="10" fill="#fff" stroke="#E5DDD4" stroke-width="1.5"/>
+            <text x="170" y="24" class="user-bubble" font-weight="600">"What's the capital of Australia?"</text>
+          </g>
+
+          <!-- Agent 1 answer -->
+          <g transform="translate(80, 140)">
+            <rect x="0" y="0" width="340" height="70" rx="10" fill="#FFEBEE" stroke="#EF5350" stroke-width="1.5"/>
+            <text x="20" y="22" font-size="11" font-weight="700" fill="#C62828">Agent A:</text>
+            <text x="20" y="42" font-size="11" fill="#2B2D42">"The capital is Sydney."</text>
+            <text x="20" y="60" font-size="10" fill="#C62828">❌ confidently wrong</text>
+          </g>
+
+          <!-- Agent 2 answer -->
+          <g transform="translate(480, 140)">
+            <rect x="0" y="0" width="340" height="70" rx="10" fill="#E8F5E9" stroke="#4CAF50" stroke-width="1.5"/>
+            <text x="20" y="22" font-size="11" font-weight="700" fill="#2E7D32">Agent B:</text>
+            <text x="20" y="42" font-size="11" fill="#2B2D42">"The capital is Canberra."</text>
+            <text x="20" y="60" font-size="10" fill="#2E7D32">✓ correct &amp; concise</text>
+          </g>
+
+          <!-- The problem -->
+          <g transform="translate(450, 260)">
+            <rect x="-340" y="0" width="680" height="100" rx="14" fill="#fff" stroke="#E5DDD4" stroke-width="2"/>
+            <text x="0" y="28" text-anchor="middle" font-size="14" font-weight="700" fill="#2B2D42">The problem: how do you know which agent is better at scale?</text>
+            <text x="0" y="52" text-anchor="middle" font-size="11" fill="#6B6D7B">You can't read 10,000 answers by hand. You need automated scoring.</text>
+            <text x="0" y="74" text-anchor="middle" font-size="11" fill="#6B6D7B">Evaluation frameworks measure your agent on dimensions like correctness, relevance, and safety —</text>
+            <text x="0" y="90" text-anchor="middle" font-size="11" fill="#E87A2E" font-weight="600">turning "feels good" into objective numbers.</text>
+          </g>
+
+          <!-- Metrics preview -->
+          <g transform="translate(150, 400)">
+            <rect x="0" y="0" width="160" height="80" rx="12" fill="url(#judgeGrad)"/>
+            <text x="80" y="28" text-anchor="middle" font-size="13" font-weight="700" fill="#fff">DeepEval</text>
+            <text x="80" y="50" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.85)">correctness</text>
+            <text x="80" y="65" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.85)">hallucination</text>
+          </g>
+          <g transform="translate(370, 400)">
+            <rect x="0" y="0" width="160" height="80" rx="12" fill="url(#greenGrad)"/>
+            <text x="80" y="28" text-anchor="middle" font-size="13" font-weight="700" fill="#fff">RAGAS</text>
+            <text x="80" y="50" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.85)">retrieval quality</text>
+            <text x="80" y="65" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.85)">faithfulness</text>
+          </g>
+          <g transform="translate(590, 400)">
+            <rect x="0" y="0" width="160" height="80" rx="12" fill="url(#blueGrad)"/>
+            <text x="80" y="28" text-anchor="middle" font-size="13" font-weight="700" fill="#fff">Task completion</text>
+            <text x="80" y="50" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.85)">did it finish?</text>
+            <text x="80" y="65" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.85)">end-to-end</text>
+          </g>
+        </g>
+
+        <!-- ========== STEP 2: DEEPEVAL ========== -->
+        <g id="deepevalGroup" class="fade-el">
+          <text x="450" y="35" text-anchor="middle" font-family="DM Serif Display" font-size="18" fill="#2B2D42">DeepEval: an AI judge for your AI</text>
+
+          <!-- Input -->
+          <g transform="translate(40, 80)">
+            <rect x="0" y="0" width="200" height="160" rx="12" fill="#fff" stroke="#E5DDD4" stroke-width="1.5"/>
+            <text x="100" y="22" text-anchor="middle" font-size="11" font-weight="700" fill="#2B2D42">Test case</text>
+            <line x1="20" y1="32" x2="180" y2="32" stroke="#E5DDD4"/>
+            <text x="20" y="52" font-size="10" font-weight="600" fill="#6B6D7B">Input:</text>
+            <text x="20" y="68" font-size="10" fill="#2B2D42">"Capital of Australia?"</text>
+            <text x="20" y="92" font-size="10" font-weight="600" fill="#6B6D7B">Agent output:</text>
+            <text x="20" y="108" font-size="10" fill="#2B2D42">"It is Canberra."</text>
+            <text x="20" y="132" font-size="10" font-weight="600" fill="#6B6D7B">Expected:</text>
+            <text x="20" y="148" font-size="10" fill="#2B2D42">"Canberra"</text>
+          </g>
+
+          <!-- Arrow -->
+          <g transform="translate(260, 160)">
+            <line x1="0" y1="0" x2="40" y2="0" stroke="#9597A6" stroke-width="2"/>
+            <polygon points="40,0 34,-5 34,5" fill="#9597A6"/>
+          </g>
+
+          <!-- DeepEval judge -->
+          <g transform="translate(380, 160)">
+            <circle r="60" fill="url(#judgeGrad)" filter="url(#soft)"/>
+            <text y="-12" class="node-label">DeepEval</text>
+            <text y="6" class="node-sub">LLM-as-judge</text>
+            <text y="22" class="node-sub">⚖️</text>
+          </g>
+
+          <!-- Arrow -->
+          <g transform="translate(460, 160)">
+            <line x1="0" y1="0" x2="40" y2="0" stroke="#9597A6" stroke-width="2"/>
+            <polygon points="40,0 34,-5 34,5" fill="#9597A6"/>
+          </g>
+
+          <!-- Scores -->
+          <g transform="translate(540, 80)">
+            <rect x="0" y="0" width="320" height="180" rx="12" fill="#fff" stroke="#E5DDD4" stroke-width="1.5"/>
+            <text x="160" y="22" text-anchor="middle" font-size="11" font-weight="700" fill="#2B2D42">Score report</text>
+            <line x1="20" y1="32" x2="300" y2="32" stroke="#E5DDD4"/>
+
+            <!-- Metric 1: Correctness -->
+            <g transform="translate(20, 50)">
+              <text font-size="11" fill="#2B2D42" font-weight="600">Correctness</text>
+              <rect x="0" y="6" width="200" height="14" rx="7" fill="#F3EDE7"/>
+              <rect class="score-bar" id="deScore1" x="0" y="6" width="0" height="14" rx="7" fill="url(#greenGrad)" data-target="190"/>
+              <text x="210" y="17" font-size="11" font-weight="700" fill="#2E7D32" class="score-num" id="deScoreNum1" data-target="0.95">0.00</text>
+            </g>
+
+            <!-- Metric 2: Relevance -->
+            <g transform="translate(20, 88)">
+              <text font-size="11" fill="#2B2D42" font-weight="600">Relevance</text>
+              <rect x="0" y="6" width="200" height="14" rx="7" fill="#F3EDE7"/>
+              <rect class="score-bar" id="deScore2" x="0" y="6" width="0" height="14" rx="7" fill="url(#greenGrad)" data-target="180"/>
+              <text x="210" y="17" font-size="11" font-weight="700" fill="#2E7D32" class="score-num" id="deScoreNum2" data-target="0.90">0.00</text>
+            </g>
+
+            <!-- Metric 3: Hallucination -->
+            <g transform="translate(20, 126)">
+              <text font-size="11" fill="#2B2D42" font-weight="600">No hallucination</text>
+              <rect x="0" y="6" width="200" height="14" rx="7" fill="#F3EDE7"/>
+              <rect class="score-bar" id="deScore3" x="0" y="6" width="0" height="14" rx="7" fill="url(#greenGrad)" data-target="196"/>
+              <text x="210" y="17" font-size="11" font-weight="700" fill="#2E7D32" class="score-num" id="deScoreNum3" data-target="0.98">0.00</text>
+            </g>
+
+            <!-- Verdict -->
+            <g transform="translate(160, 165)">
+              <rect x="-70" y="-12" width="140" height="22" rx="11" fill="#E8F5E9" stroke="#4CAF50" stroke-width="1.5"/>
+              <text y="3" text-anchor="middle" font-size="11" font-weight="700" fill="#2E7D32">✓ PASS</text>
+            </g>
+          </g>
+
+          <!-- Bottom note -->
+          <g transform="translate(450, 360)">
+            <rect x="-380" y="0" width="760" height="120" rx="14" fill="#FFF8E1" stroke="#FFA726" stroke-width="1.5"/>
+            <text x="0" y="26" text-anchor="middle" font-size="13" font-weight="700" fill="#8D6E00">How DeepEval works (simple version)</text>
+            <text x="0" y="50" text-anchor="middle" font-size="11" fill="#5D4A00">1. You give it: the question, your agent's answer, and (optionally) the expected answer.</text>
+            <text x="0" y="70" text-anchor="middle" font-size="11" fill="#5D4A00">2. A separate LLM acts as a judge — scoring correctness, relevance, hallucination, bias, etc.</text>
+            <text x="0" y="90" text-anchor="middle" font-size="11" fill="#5D4A00">3. You get numeric scores (0 to 1) for each metric, and a clear PASS / FAIL verdict.</text>
+            <text x="0" y="108" text-anchor="middle" font-size="11" fill="#D55222" font-weight="600">Run it on 100s of test cases. Tracked over time = your quality dashboard.</text>
+          </g>
+        </g>
+
+        <!-- ========== STEP 3: RAGAS ========== -->
+        <g id="ragasGroup" class="fade-el">
+          <text x="450" y="35" text-anchor="middle" font-family="DM Serif Display" font-size="18" fill="#2B2D42">RAGAS: evaluating RAG pipelines</text>
+
+          <!-- Pipeline -->
+          <g transform="translate(60, 80)">
+            <rect x="0" y="0" width="120" height="50" rx="10" fill="url(#blueGrad)"/>
+            <text x="60" y="22" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">Question</text>
+            <text x="60" y="36" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.85)">user input</text>
+          </g>
+          <g transform="translate(200, 100)">
+            <line x1="0" y1="0" x2="30" y2="0" stroke="#9597A6" stroke-width="2"/>
+            <polygon points="30,0 24,-5 24,5" fill="#9597A6"/>
+          </g>
+          <g transform="translate(240, 80)">
+            <rect x="0" y="0" width="120" height="50" rx="10" fill="#fff" stroke="#7C4DFF" stroke-width="2"/>
+            <text x="60" y="22" text-anchor="middle" font-size="11" font-weight="700" fill="#5B2FE0">Retrieve</text>
+            <text x="60" y="36" text-anchor="middle" font-size="9" fill="#6B6D7B">find docs</text>
+          </g>
+          <g transform="translate(380, 100)">
+            <line x1="0" y1="0" x2="30" y2="0" stroke="#9597A6" stroke-width="2"/>
+            <polygon points="30,0 24,-5 24,5" fill="#9597A6"/>
+          </g>
+          <g transform="translate(420, 80)">
+            <rect x="0" y="0" width="120" height="50" rx="10" fill="#fff" stroke="#E87A2E" stroke-width="2"/>
+            <text x="60" y="22" text-anchor="middle" font-size="11" font-weight="700" fill="#D06A20">Generate</text>
+            <text x="60" y="36" text-anchor="middle" font-size="9" fill="#6B6D7B">LLM answer</text>
+          </g>
+          <g transform="translate(560, 100)">
+            <line x1="0" y1="0" x2="30" y2="0" stroke="#9597A6" stroke-width="2"/>
+            <polygon points="30,0 24,-5 24,5" fill="#9597A6"/>
+          </g>
+          <g transform="translate(600, 80)">
+            <rect x="0" y="0" width="120" height="50" rx="10" fill="url(#greenGrad)"/>
+            <text x="60" y="22" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">Answer</text>
+            <text x="60" y="36" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.85)">final reply</text>
+          </g>
+
+          <!-- RAGAS measures both stages -->
+          <g transform="translate(300, 200)">
+            <rect x="0" y="0" width="120" height="38" rx="10" fill="#FFE082" stroke="#E0A800" stroke-width="1.5"/>
+            <text x="60" y="22" text-anchor="middle" font-size="10" font-weight="700" fill="#8D6E00">Did we fetch</text>
+            <text x="60" y="34" text-anchor="middle" font-size="10" font-weight="700" fill="#8D6E00">the right docs?</text>
+          </g>
+          <line x1="300" y1="155" x2="300" y2="200" stroke="#E0A800" stroke-width="2" stroke-dasharray="3 3"/>
+
+          <g transform="translate(480, 200)">
+            <rect x="0" y="0" width="120" height="38" rx="10" fill="#FFE082" stroke="#E0A800" stroke-width="1.5"/>
+            <text x="60" y="22" text-anchor="middle" font-size="10" font-weight="700" fill="#8D6E00">Did the answer</text>
+            <text x="60" y="34" text-anchor="middle" font-size="10" font-weight="700" fill="#8D6E00">stick to docs?</text>
+          </g>
+          <line x1="480" y1="155" x2="480" y2="200" stroke="#E0A800" stroke-width="2" stroke-dasharray="3 3"/>
+
+          <!-- RAGAS metrics -->
+          <g transform="translate(100, 280)">
+            <rect x="0" y="0" width="170" height="100" rx="12" fill="#fff" stroke="#4CAF50" stroke-width="1.5"/>
+            <text x="85" y="22" text-anchor="middle" font-size="11" font-weight="700" fill="#2E7D32">Context Precision</text>
+            <text x="85" y="40" text-anchor="middle" font-size="9" fill="#6B6D7B">Are retrieved docs relevant?</text>
+            <g transform="translate(15, 55)">
+              <rect x="0" y="0" width="140" height="12" rx="6" fill="#F3EDE7"/>
+              <rect class="score-bar" id="rgScore1" x="0" y="0" width="0" height="12" rx="6" fill="url(#greenGrad)" data-target="119"/>
+            </g>
+            <text x="85" y="86" text-anchor="middle" font-size="13" font-weight="700" fill="#2E7D32" class="score-num" id="rgNum1" data-target="0.85">0.00</text>
+          </g>
+
+          <g transform="translate(290, 280)">
+            <rect x="0" y="0" width="170" height="100" rx="12" fill="#fff" stroke="#4CAF50" stroke-width="1.5"/>
+            <text x="85" y="22" text-anchor="middle" font-size="11" font-weight="700" fill="#2E7D32">Faithfulness</text>
+            <text x="85" y="40" text-anchor="middle" font-size="9" fill="#6B6D7B">Answer matches docs?</text>
+            <g transform="translate(15, 55)">
+              <rect x="0" y="0" width="140" height="12" rx="6" fill="#F3EDE7"/>
+              <rect class="score-bar" id="rgScore2" x="0" y="0" width="0" height="12" rx="6" fill="url(#greenGrad)" data-target="130"/>
+            </g>
+            <text x="85" y="86" text-anchor="middle" font-size="13" font-weight="700" fill="#2E7D32" class="score-num" id="rgNum2" data-target="0.93">0.00</text>
+          </g>
+
+          <g transform="translate(480, 280)">
+            <rect x="0" y="0" width="170" height="100" rx="12" fill="#fff" stroke="#4CAF50" stroke-width="1.5"/>
+            <text x="85" y="22" text-anchor="middle" font-size="11" font-weight="700" fill="#2E7D32">Answer Relevance</text>
+            <text x="85" y="40" text-anchor="middle" font-size="9" fill="#6B6D7B">Did it actually answer?</text>
+            <g transform="translate(15, 55)">
+              <rect x="0" y="0" width="140" height="12" rx="6" fill="#F3EDE7"/>
+              <rect class="score-bar" id="rgScore3" x="0" y="0" width="0" height="12" rx="6" fill="url(#greenGrad)" data-target="125"/>
+            </g>
+            <text x="85" y="86" text-anchor="middle" font-size="13" font-weight="700" fill="#2E7D32" class="score-num" id="rgNum3" data-target="0.89">0.00</text>
+          </g>
+
+          <g transform="translate(670, 280)">
+            <rect x="0" y="0" width="170" height="100" rx="12" fill="#FFEBEE" stroke="#EF5350" stroke-width="1.5"/>
+            <text x="85" y="22" text-anchor="middle" font-size="11" font-weight="700" fill="#C62828">Context Recall</text>
+            <text x="85" y="40" text-anchor="middle" font-size="9" fill="#6B6D7B">Did we miss anything?</text>
+            <g transform="translate(15, 55)">
+              <rect x="0" y="0" width="140" height="12" rx="6" fill="#F3EDE7"/>
+              <rect class="score-bar" id="rgScore4" x="0" y="0" width="0" height="12" rx="6" fill="#EF5350" data-target="86"/>
+            </g>
+            <text x="85" y="86" text-anchor="middle" font-size="13" font-weight="700" fill="#C62828" class="score-num" id="rgNum4" data-target="0.61">0.00</text>
+          </g>
+
+          <g transform="translate(450, 425)">
+            <text text-anchor="middle" font-size="12" fill="#D55222" font-weight="600">⚠ Context Recall is low → improve retrieval, not the LLM</text>
+            <text text-anchor="middle" y="20" font-size="11" fill="#6B6D7B">RAGAS pinpoints which part of the pipeline to fix.</text>
+          </g>
+        </g>
+
+        <!-- ========== STEP 4: TASK COMPLETION ========== -->
+        <g id="taskGroup" class="fade-el">
+          <text x="450" y="35" text-anchor="middle" font-family="DM Serif Display" font-size="18" fill="#2B2D42">Task completion: did the agent actually finish the job?</text>
+
+          <!-- Task definition -->
+          <g transform="translate(70, 70)">
+            <rect x="0" y="0" width="760" height="40" rx="10" fill="#fff" stroke="#E5DDD4" stroke-width="1.5"/>
+            <text x="20" y="25" font-size="11" font-weight="700" fill="#2B2D42">Task:</text>
+            <text x="65" y="25" font-size="11" fill="#2B2D42">"Book a flight from Mumbai to Delhi for tomorrow, under ₹6000, and email me the confirmation."</text>
+          </g>
+
+          <!-- Checklist -->
+          <g transform="translate(180, 140)">
+            <rect x="0" y="0" width="540" height="280" rx="12" fill="#fff" stroke="#E5DDD4" stroke-width="1.5"/>
+            <text x="270" y="28" text-anchor="middle" font-size="13" font-weight="700" fill="#2B2D42">Sub-goals checklist (auto-evaluated)</text>
+            <line x1="20" y1="42" x2="520" y2="42" stroke="#E5DDD4"/>
+
+            <!-- step 1 -->
+            <g class="task-row" id="taskRow1" transform="translate(30, 65)">
+              <circle r="14" fill="#E8F5E9" stroke="#4CAF50" stroke-width="2"/>
+              <text x="-3" y="4" font-size="14" font-weight="700" fill="#2E7D32">✓</text>
+              <text x="28" y="5" font-size="12" font-weight="600" fill="#2B2D42">Search for flights MUM → DEL</text>
+              <text x="28" y="20" font-size="10" fill="#6B6D7B">found 14 options</text>
+            </g>
+            <!-- step 2 -->
+            <g class="task-row" id="taskRow2" transform="translate(30, 110)">
+              <circle r="14" fill="#E8F5E9" stroke="#4CAF50" stroke-width="2"/>
+              <text x="-3" y="4" font-size="14" font-weight="700" fill="#2E7D32">✓</text>
+              <text x="28" y="5" font-size="12" font-weight="600" fill="#2B2D42">Filter by date = tomorrow</text>
+              <text x="28" y="20" font-size="10" fill="#6B6D7B">8 options remain</text>
+            </g>
+            <!-- step 3 -->
+            <g class="task-row" id="taskRow3" transform="translate(30, 155)">
+              <circle r="14" fill="#E8F5E9" stroke="#4CAF50" stroke-width="2"/>
+              <text x="-3" y="4" font-size="14" font-weight="700" fill="#2E7D32">✓</text>
+              <text x="28" y="5" font-size="12" font-weight="600" fill="#2B2D42">Filter by price &lt; ₹6000</text>
+              <text x="28" y="20" font-size="10" fill="#6B6D7B">3 options remain</text>
+            </g>
+            <!-- step 4 -->
+            <g class="task-row" id="taskRow4" transform="translate(30, 200)">
+              <circle r="14" fill="#E8F5E9" stroke="#4CAF50" stroke-width="2"/>
+              <text x="-3" y="4" font-size="14" font-weight="700" fill="#2E7D32">✓</text>
+              <text x="28" y="5" font-size="12" font-weight="600" fill="#2B2D42">Complete booking</text>
+              <text x="28" y="20" font-size="10" fill="#6B6D7B">PNR: ABC123</text>
+            </g>
+            <!-- step 5 -->
+            <g class="task-row" id="taskRow5" transform="translate(30, 245)">
+              <circle r="14" fill="#FFEBEE" stroke="#EF5350" stroke-width="2"/>
+              <text x="-3" y="4" font-size="14" font-weight="700" fill="#C62828">✗</text>
+              <text x="28" y="5" font-size="12" font-weight="600" fill="#2B2D42">Send confirmation email</text>
+              <text x="28" y="20" font-size="10" fill="#C62828">failed: SMTP error</text>
+            </g>
+          </g>
+
+          <!-- Score -->
+          <g transform="translate(450, 450)">
+            <rect x="-160" y="0" width="320" height="50" rx="12" fill="url(#amberGrad)"/>
+            <text x="0" y="22" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">Task completion: 4 / 5 = 80%</text>
+            <text x="0" y="38" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.9)">Partial success — flag for human review</text>
+          </g>
+        </g>
+
+        <!-- ========== STEP 5: LATENCY & COST ========== -->
+        <g id="latencyGroup" class="fade-el">
+          <text x="450" y="35" text-anchor="middle" font-family="DM Serif Display" font-size="18" fill="#2B2D42">Latency &amp; cost: speed and money matter too</text>
+
+          <!-- Three charts -->
+
+          <!-- Latency timeline -->
+          <g transform="translate(50, 70)">
+            <rect x="0" y="0" width="380" height="200" rx="12" fill="#fff" stroke="#E5DDD4" stroke-width="1.5"/>
+            <text x="190" y="22" text-anchor="middle" font-size="11" font-weight="700" fill="#2B2D42">Per-step latency (ms)</text>
+            <line x1="30" y1="32" x2="350" y2="32" stroke="#E5DDD4"/>
+
+            <!-- bars -->
+            <g transform="translate(60, 50)">
+              <!-- step 1 -->
+              <text x="0" y="22" font-size="10" fill="#6B6D7B">Plan</text>
+              <rect class="lat-bar" x="60" y="11" width="0" height="14" rx="3" fill="url(#blueGrad)" data-target="80"/>
+              <text x="65" y="22" font-size="9" fill="#fff" font-weight="700" class="lat-label" id="latLabel1">240</text>
+
+              <text x="0" y="50" font-size="10" fill="#6B6D7B">Retrieve</text>
+              <rect class="lat-bar" x="60" y="39" width="0" height="14" rx="3" fill="url(#blueGrad)" data-target="180"/>
+
+              <text x="0" y="78" font-size="10" fill="#6B6D7B">LLM call</text>
+              <rect class="lat-bar" x="60" y="67" width="0" height="14" rx="3" fill="url(#blueGrad)" data-target="240"/>
+
+              <text x="0" y="106" font-size="10" fill="#6B6D7B">Tools</text>
+              <rect class="lat-bar" x="60" y="95" width="0" height="14" rx="3" fill="url(#blueGrad)" data-target="60"/>
+
+              <text x="0" y="134" font-size="10" fill="#6B6D7B">Total</text>
+              <rect class="lat-bar" x="60" y="123" width="0" height="14" rx="3" fill="url(#amberGrad)" data-target="280"/>
+              <text x="68" y="134" font-size="9" fill="#fff" font-weight="700" class="lat-label">2.8s</text>
+            </g>
+          </g>
+
+          <!-- Cost breakdown -->
+          <g transform="translate(460, 70)">
+            <rect x="0" y="0" width="380" height="200" rx="12" fill="#fff" stroke="#E5DDD4" stroke-width="1.5"/>
+            <text x="190" y="22" text-anchor="middle" font-size="11" font-weight="700" fill="#2B2D42">Cost per query ($)</text>
+            <line x1="30" y1="32" x2="350" y2="32" stroke="#E5DDD4"/>
+
+            <!-- Donut chart -->
+            <g transform="translate(120, 115)">
+              <!-- LLM 60% -->
+              <circle r="50" fill="none" stroke="#E87A2E" stroke-width="22" stroke-dasharray="188 314" stroke-dashoffset="0" transform="rotate(-90)"/>
+              <!-- embeddings 25% -->
+              <circle r="50" fill="none" stroke="#4285F4" stroke-width="22" stroke-dasharray="78 314" stroke-dashoffset="-188" transform="rotate(-90)"/>
+              <!-- tools 15% -->
+              <circle r="50" fill="none" stroke="#4CAF50" stroke-width="22" stroke-dasharray="48 314" stroke-dashoffset="-266" transform="rotate(-90)"/>
+              <text y="-3" text-anchor="middle" font-family="DM Serif Display" font-size="20" fill="#2B2D42">$0.018</text>
+              <text y="14" text-anchor="middle" font-size="9" fill="#6B6D7B">per query</text>
+            </g>
+
+            <!-- legend -->
+            <g transform="translate(220, 60)">
+              <circle r="5" fill="#E87A2E"/>
+              <text x="12" y="4" font-size="10" fill="#2B2D42">LLM calls</text>
+              <text x="105" y="4" font-size="10" font-weight="700" fill="#E87A2E">60%</text>
+
+              <circle cy="22" r="5" fill="#4285F4"/>
+              <text x="12" y="26" font-size="10" fill="#2B2D42">Embeddings</text>
+              <text x="105" y="26" font-size="10" font-weight="700" fill="#4285F4">25%</text>
+
+              <circle cy="44" r="5" fill="#4CAF50"/>
+              <text x="12" y="48" font-size="10" fill="#2B2D42">Tool calls</text>
+              <text x="105" y="48" font-size="10" font-weight="700" fill="#4CAF50">15%</text>
+
+              <g transform="translate(0, 70)">
+                <rect x="-5" y="-10" width="140" height="40" rx="6" fill="#FFF8E1" stroke="#FFA726" stroke-width="1"/>
+                <text x="65" y="5" text-anchor="middle" font-size="10" font-weight="600" fill="#8D6E00">at 1M queries =</text>
+                <text x="65" y="22" text-anchor="middle" font-size="13" font-weight="800" fill="#E87A2E">$18,000/mo</text>
+              </g>
+            </g>
+          </g>
+
+          <!-- Combined dashboard insight -->
+          <g transform="translate(60, 290)">
+            <rect x="0" y="0" width="780" height="180" rx="14" fill="#1A1B2E"/>
+            <text x="390" y="32" text-anchor="middle" font-family="DM Serif Display" font-size="16" fill="#fff">Putting it all together: the eval dashboard</text>
+
+            <g transform="translate(60, 60)">
+              <rect x="0" y="0" width="160" height="100" rx="10" fill="#2B2D42"/>
+              <text x="80" y="22" text-anchor="middle" font-size="10" font-weight="700" fill="rgba(255,255,255,0.65)">CORRECTNESS</text>
+              <text x="80" y="58" text-anchor="middle" font-family="DM Serif Display" font-size="30" fill="#4CAF50">95%</text>
+              <text x="80" y="80" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.5)">↑ 3% vs last week</text>
+            </g>
+            <g transform="translate(240, 60)">
+              <rect x="0" y="0" width="160" height="100" rx="10" fill="#2B2D42"/>
+              <text x="80" y="22" text-anchor="middle" font-size="10" font-weight="700" fill="rgba(255,255,255,0.65)">P95 LATENCY</text>
+              <text x="80" y="58" text-anchor="middle" font-family="DM Serif Display" font-size="30" fill="#FFA726">2.8s</text>
+              <text x="80" y="80" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.5)">→ stable</text>
+            </g>
+            <g transform="translate(420, 60)">
+              <rect x="0" y="0" width="160" height="100" rx="10" fill="#2B2D42"/>
+              <text x="80" y="22" text-anchor="middle" font-size="10" font-weight="700" fill="rgba(255,255,255,0.65)">$ PER QUERY</text>
+              <text x="80" y="58" text-anchor="middle" font-family="DM Serif Display" font-size="30" fill="#4285F4">$0.018</text>
+              <text x="80" y="80" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.5)">↓ 12% after caching</text>
+            </g>
+            <g transform="translate(600, 60)">
+              <rect x="0" y="0" width="160" height="100" rx="10" fill="#2B2D42"/>
+              <text x="80" y="22" text-anchor="middle" font-size="10" font-weight="700" fill="rgba(255,255,255,0.65)">TASK COMPLETION</text>
+              <text x="80" y="58" text-anchor="middle" font-family="DM Serif Display" font-size="30" fill="#E87A2E">87%</text>
+              <text x="80" y="80" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.5)">3 sub-goals failing</text>
+            </g>
+          </g>
+        </g>
+
+      </svg>
+    </div>
+
+    <div class="legend">
+      <div class="legend-item"><span class="legend-dot" style="background:#7C4DFF"></span>DeepEval (LLM-judge)</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#4CAF50"></span>RAGAS metrics</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#FFA726"></span>Task completion</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#4285F4"></span>Latency / cost</div>
+    </div>
+
+    <div class="scene-body">
+      <div class="narration" id="narrationBox">
+        <h3 id="narrTitle">"It works on my demo" isn't enough</h3>
+        <p id="narrText1">In demos, agents look magical. In production, they hit weird edge cases — wrong facts, slow responses, surprising bills. Evaluation makes the invisible <em>visible</em>.</p>
+        <p id="narrText2">Four pillars: <strong>quality</strong> (DeepEval, RAGAS), <strong>completion</strong> (did the agent finish?), <strong>latency</strong> (is it fast?), and <strong>cost</strong> (is it affordable?). All four matter together.</p>
+      </div>
+      <div class="recap-box">
+        <h4>Key Insight</h4>
+        <ul id="recapList">
+          <li>Demos hide failures; evaluation finds them</li>
+          <li>Quality, speed, and cost are all trackable</li>
+          <li>Tracking over time = a regression alarm</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="btn btn-outline" id="prevBtn" disabled>← Previous</button>
+      <button class="replay-btn" id="replayBtn">↻ Replay animation</button>
+      <button class="btn btn-primary" id="nextBtn">Next step →</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+let currentStep = 1;
+const TOTAL_STEPS = 5;
+let activeTimeouts = [];
+
+const STEPS = {
+  1: {
+    label: 'STEP 1 OF 5',
+    title: 'Why evaluate an agent?',
+    intro: 'An agent that "feels right" in demos can fail badly in production. Evaluation turns vibes into measurable scores you can track over time.',
+    narrTitle: '"It works on my demo" isn\'t enough',
+    narrText1: 'In demos, agents look magical. In production, they hit weird edge cases — wrong facts, slow responses, surprising bills. Evaluation makes the invisible <em>visible</em>.',
+    narrText2: 'Four pillars: <strong>quality</strong> (DeepEval, RAGAS), <strong>completion</strong> (did the agent finish?), <strong>latency</strong> (is it fast?), and <strong>cost</strong> (is it affordable?). All four matter together.',
+    recap: ['Demos hide failures; evaluation finds them', 'Quality, speed, and cost are all trackable', 'Tracking over time = a regression alarm']
+  },
+  2: {
+    label: 'STEP 2 OF 5',
+    title: 'DeepEval: an LLM grading your LLM',
+    intro: 'DeepEval uses another language model as an impartial judge. It scores your agent\'s outputs on correctness, relevance, hallucination, and more.',
+    narrTitle: 'AI grading AI — surprisingly reliable',
+    narrText1: 'You feed DeepEval a test case: <em>question, agent answer, expected answer</em>. A judge LLM compares them and outputs scores from 0 to 1 for each metric.',
+    narrText2: 'You write each test once, then run it on every code change. Scores dropping = regression. Scores climbing = improvement. <strong>No more guessing if your last prompt change made things better or worse.</strong>',
+    recap: ['DeepEval = LLM-as-judge framework', 'Scores: correctness, relevance, hallucination', 'Catches regressions automatically']
+  },
+  3: {
+    label: 'STEP 3 OF 5',
+    title: 'RAGAS: evaluating retrieval pipelines',
+    intro: 'When your agent uses RAG (retrieval-augmented generation), RAGAS measures the retrieval and the generation separately — pinpointing the bottleneck.',
+    narrTitle: 'Which part of the RAG pipeline failed?',
+    narrText1: 'RAGAS splits the diagnosis: <em>Context Precision</em> and <em>Context Recall</em> measure retrieval; <em>Faithfulness</em> and <em>Answer Relevance</em> measure generation.',
+    narrText2: 'In our example, Context Recall is low — meaning <strong>important documents weren\'t fetched</strong>. So the fix is in retrieval (better embeddings or rerankers), not the LLM. RAGAS tells you exactly where to focus.',
+    recap: ['RAGAS = RAG-specific evaluation', 'Splits scores by stage (retrieve vs generate)', 'Tells you what to fix, not just that it broke']
+  },
+  4: {
+    label: 'STEP 4 OF 5',
+    title: 'Task completion: did the agent finish?',
+    intro: 'For agents that perform multi-step actions, the real question is: did all the sub-goals get done? Track each step independently.',
+    narrTitle: 'Beyond text — did the agent achieve the goal?',
+    narrText1: 'Quality scores can be high while the task still fails. The agent might fetch the right info but forget to <em>send the email</em>. Task completion checks each sub-goal as a binary pass/fail.',
+    narrText2: 'In this example, 4 out of 5 sub-goals passed (80%). The booking succeeded but the email failed — <strong>partial success, flagged for human review</strong>. Without this metric, you\'d think everything is fine.',
+    recap: ['Break the task into clear sub-goals', 'Score each as done / not done', 'Surfaces "half-completed" failures']
+  },
+  5: {
+    label: 'STEP 5 OF 5',
+    title: 'Latency &amp; cost tracking',
+    intro: 'A correct, complete answer that takes 30 seconds or costs $1 per query won\'t survive in production. Track speed and spend just as carefully as quality.',
+    narrTitle: 'Speed and money: the silent killers',
+    narrText1: 'Track latency per step: planning, retrieval, LLM call, tool calls. The bottleneck is usually the <em>biggest bar</em>. Track cost too — broken down by what you\'re spending on.',
+    narrText2: 'A dashboard like this is the heartbeat of a production agent. You\'ll spot when latency creeps up (a model change?), when cost spikes (a runaway loop?), and when task completion drops (a regression). <strong>You can\'t improve what you can\'t see.</strong>',
+    recap: ['Latency per step → find the bottleneck', 'Cost per query × volume → real bill', 'Dashboard = continuous early-warning system']
+  }
+};
+
+function clearTimeouts() { activeTimeouts.forEach(t => clearTimeout(t)); activeTimeouts = []; }
+function delay(fn, ms) { const t = setTimeout(fn, ms); activeTimeouts.push(t); return t; }
+function showEl(id) { const el = document.getElementById(id); if (el) el.classList.add('show'); }
+function hideEl(id) { const el = document.getElementById(id); if (el) el.classList.remove('show'); }
+
+function resetStage() {
+  clearTimeouts();
+  ['whyEvalGroup', 'deepevalGroup', 'ragasGroup', 'taskGroup', 'latencyGroup'].forEach(hideEl);
+  // reset score bars
+  document.querySelectorAll('.score-bar').forEach(b => { b.setAttribute('width', '0'); });
+  document.querySelectorAll('.score-num').forEach(t => { t.textContent = '0.00'; });
+  document.querySelectorAll('.lat-bar').forEach(b => { b.setAttribute('width', '0'); });
+}
+
+function animateScores(prefix, count) {
+  for (let i = 1; i <= count; i++) {
+    const bar = document.getElementById(prefix + 'Score' + i) || document.getElementById('rgScore' + i);
+    if (!bar) continue;
+    const target = parseFloat(bar.getAttribute('data-target'));
+    delay(() => {
+      bar.style.transition = 'width 1s ease-out';
+      bar.setAttribute('width', target);
+    }, 400 + i * 200);
+  }
+  // animate numbers
+  const numElems = document.querySelectorAll(`[id^="${prefix}Num"], [id^="${prefix}ScoreNum"]`);
+  numElems.forEach((numEl, idx) => {
+    const target = parseFloat(numEl.getAttribute('data-target'));
+    delay(() => {
+      let current = 0;
+      const steps = 20;
+      const inc = target / steps;
+      let stepCount = 0;
+      const interval = setInterval(() => {
+        stepCount++;
+        current += inc;
+        if (stepCount >= steps) { current = target; clearInterval(interval); }
+        numEl.textContent = current.toFixed(2);
+      }, 50);
+    }, 400 + (idx + 1) * 200);
+  });
+}
+
+function runStep1() {
+  resetStage();
+  delay(() => showEl('whyEvalGroup'), 200);
+}
+
+function runStep2() {
+  resetStage();
+  delay(() => showEl('deepevalGroup'), 200);
+  // animate score bars
+  delay(() => {
+    ['deScore1', 'deScore2', 'deScore3'].forEach((id, i) => {
+      const bar = document.getElementById(id);
+      const target = parseFloat(bar.getAttribute('data-target'));
+      delay(() => {
+        bar.style.transition = 'width 1s ease-out';
+        bar.setAttribute('width', target);
+      }, i * 250);
+    });
+    ['deScoreNum1', 'deScoreNum2', 'deScoreNum3'].forEach((id, i) => {
+      const el = document.getElementById(id);
+      const target = parseFloat(el.getAttribute('data-target'));
+      delay(() => {
+        let current = 0;
+        const steps = 20;
+        const inc = target / steps;
+        let count = 0;
+        const interval = setInterval(() => {
+          count++;
+          current += inc;
+          if (count >= steps) { current = target; clearInterval(interval); }
+          el.textContent = current.toFixed(2);
+        }, 50);
+      }, i * 250);
+    });
+  }, 700);
+}
+
+function runStep3() {
+  resetStage();
+  delay(() => showEl('ragasGroup'), 200);
+  delay(() => {
+    ['rgScore1', 'rgScore2', 'rgScore3', 'rgScore4'].forEach((id, i) => {
+      const bar = document.getElementById(id);
+      const target = parseFloat(bar.getAttribute('data-target'));
+      delay(() => {
+        bar.style.transition = 'width 1s ease-out';
+        bar.setAttribute('width', target);
+      }, i * 250);
+    });
+    ['rgNum1', 'rgNum2', 'rgNum3', 'rgNum4'].forEach((id, i) => {
+      const el = document.getElementById(id);
+      const target = parseFloat(el.getAttribute('data-target'));
+      delay(() => {
+        let current = 0;
+        const steps = 20;
+        const inc = target / steps;
+        let count = 0;
+        const interval = setInterval(() => {
+          count++;
+          current += inc;
+          if (count >= steps) { current = target; clearInterval(interval); }
+          el.textContent = current.toFixed(2);
+        }, 50);
+      }, i * 250);
+    });
+  }, 700);
+}
+
+function runStep4() {
+  resetStage();
+  delay(() => showEl('taskGroup'), 200);
+  // Animate rows one by one with a "pop"
+  const rows = ['taskRow1', 'taskRow2', 'taskRow3', 'taskRow4', 'taskRow5'];
+  rows.forEach((id, i) => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.style.opacity = '0';
+      el.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+      el.style.transform = 'translate(30px, ' + (140 + i * 45 + 25) + 'px)';
+      delay(() => {
+        el.style.opacity = '1';
+        el.style.transform = el.getAttribute('transform').replace('translate(', 'translate(');
+      }, 600 + i * 400);
+    }
+  });
+}
+
+function runStep5() {
+  resetStage();
+  delay(() => showEl('latencyGroup'), 200);
+  // Animate latency bars
+  const latBars = document.querySelectorAll('.lat-bar');
+  latBars.forEach((bar, i) => {
+    const target = parseFloat(bar.getAttribute('data-target'));
+    delay(() => {
+      bar.style.transition = 'width 0.9s ease-out';
+      bar.setAttribute('width', target);
+    }, 600 + i * 200);
+  });
+}
+
+const stepRunners = {1: runStep1, 2: runStep2, 3: runStep3, 4: runStep4, 5: runStep5};
+
+function updateUI() {
+  const data = STEPS[currentStep];
+  document.getElementById('stepLabel').textContent = data.label;
+  document.getElementById('stepTitle').textContent = data.title;
+  document.getElementById('stepIntro').textContent = data.intro;
+  document.getElementById('narrTitle').textContent = data.narrTitle;
+  document.getElementById('narrText1').innerHTML = data.narrText1;
+  document.getElementById('narrText2').innerHTML = data.narrText2;
+  const recapList = document.getElementById('recapList');
+  recapList.innerHTML = '';
+  data.recap.forEach(item => {
+    const li = document.createElement('li');
+    li.textContent = item;
+    recapList.appendChild(li);
+  });
+  document.getElementById('prevBtn').disabled = currentStep === 1;
+  const nextBtn = document.getElementById('nextBtn');
+  nextBtn.textContent = currentStep === TOTAL_STEPS ? 'Restart from start ↻' : 'Next step →';
+  document.querySelectorAll('.step-pill').forEach((pill, idx) => {
+    pill.classList.remove('active', 'done');
+    const stepNum = idx + 1;
+    if (stepNum === currentStep) pill.classList.add('active');
+    else if (stepNum < currentStep) pill.classList.add('done');
+  });
+}
+
+function goToStep(n) { currentStep = n; updateUI(); stepRunners[n](); }
+
+document.getElementById('nextBtn').addEventListener('click', () => {
+  if (currentStep < TOTAL_STEPS) goToStep(currentStep + 1);
+  else goToStep(1);
+});
+document.getElementById('prevBtn').addEventListener('click', () => {
+  if (currentStep > 1) goToStep(currentStep - 1);
+});
+document.getElementById('replayBtn').addEventListener('click', () => stepRunners[currentStep]());
+document.querySelectorAll('.step-pill').forEach((pill, idx) => {
+  pill.addEventListener('click', () => goToStep(idx + 1));
+});
+
+updateUI();
+goToStep(1);
+</script>
+</body>
+</html>

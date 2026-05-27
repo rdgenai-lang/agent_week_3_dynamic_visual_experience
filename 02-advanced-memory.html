@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Advanced Memory — Visual Explainer</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --orange:#E87A2E;--orange-dark:#D06A20;--orange-light:#F5943E;--orange-glow:rgba(232,122,46,0.12);
+  --navy:#2B2D42;--navy-dark:#1A1B2E;
+  --bg:#F3EDE7;--bg-card:#FFFFFF;--bg-light:#F9F5F0;
+  --text-primary:#2B2D42;--text-secondary:#6B6D7B;--text-muted:#9597A6;
+  --border:#E5DDD4;--green:#4CAF50;--green-light:#E8F5E9;--blue:#4285F4;--purple:#7C4DFF;
+  --shadow-sm:0 2px 8px rgba(43,45,66,0.06);--shadow-md:0 8px 24px rgba(43,45,66,0.08);
+  --shadow-lg:0 16px 48px rgba(43,45,66,0.12);
+  --radius:14px;--radius-sm:8px
+}
+html{scroll-behavior:smooth}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text-primary);min-height:100vh;padding-bottom:3rem;-webkit-font-smoothing:antialiased}
+
+.top-logo-bar{background:var(--bg-card);border-bottom:1px solid var(--border);padding:0.9rem 2rem;display:flex;justify-content:space-between;align-items:center;box-shadow:var(--shadow-sm)}
+.brand-name{font-family:'DM Serif Display',serif;font-size:1.2rem;color:var(--navy)}
+.brand-name em{font-style:normal;color:var(--orange)}
+.brand-tag{font-size:0.68rem;color:var(--text-muted);font-weight:500;letter-spacing:0.04em;margin-top:0.1rem}
+.logo-wrap{width:44px;height:44px;display:flex;align-items:center;justify-content:center}
+.logo-wrap img{width:100%;height:100%;object-fit:contain}
+
+.hero-head{max-width:1160px;margin:2.5rem auto 2rem;padding:0 2rem;text-align:center}
+.hero-badge{display:inline-flex;align-items:center;gap:0.45rem;padding:0.4rem 1rem;border-radius:50px;background:var(--orange-glow);color:var(--orange);font-size:0.7rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:1rem}
+.hero-badge .dot{width:7px;height:7px;border-radius:50%;background:var(--orange);animation:pulse 2s infinite}
+.hero-head h1{font-family:'DM Serif Display',serif;font-size:clamp(1.9rem,3.6vw,2.8rem);line-height:1.18;color:var(--navy);margin-bottom:0.7rem}
+.hero-head h1 em{font-style:normal;color:var(--orange)}
+.hero-head p{font-size:0.98rem;color:var(--text-secondary);line-height:1.65;max-width:620px;margin:0 auto}
+
+.container{max-width:1160px;margin:0 auto;padding:0 2rem}
+
+.step-bar{display:flex;align-items:center;justify-content:center;gap:0;margin:2rem auto 2.5rem;flex-wrap:wrap;max-width:780px}
+.step-pill{display:flex;align-items:center;gap:0.5rem;padding:0.45rem 1rem;border-radius:50px;background:var(--bg-card);border:1.5px solid var(--border);font-size:0.78rem;font-weight:600;color:var(--text-secondary);cursor:pointer;transition:all 0.25s;margin:0.25rem}
+.step-pill.active{background:var(--orange);color:#fff;border-color:var(--orange);box-shadow:0 4px 14px rgba(232,122,46,0.3)}
+.step-pill.done{background:var(--green-light);color:var(--green);border-color:#A5D6A7}
+.step-pill .step-num{width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,0.06);display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:800}
+.step-pill.active .step-num{background:rgba(255,255,255,0.25)}
+.step-pill.done .step-num{background:rgba(76,175,80,0.2)}
+
+.scene-card{background:var(--bg-card);border-radius:var(--radius);box-shadow:var(--shadow-md);overflow:hidden;border:1px solid var(--border)}
+.scene-head{padding:1.6rem 2rem 1rem;border-bottom:1px solid var(--border);background:var(--bg-light)}
+.scene-step-label{font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--orange);margin-bottom:0.4rem}
+.scene-head h2{font-family:'DM Serif Display',serif;font-size:1.55rem;color:var(--navy);margin-bottom:0.3rem;line-height:1.25}
+.scene-head p{font-size:0.9rem;color:var(--text-secondary);line-height:1.6;max-width:780px}
+
+.stage{position:relative;background:linear-gradient(135deg,#FAF6F1 0%,#F3EDE7 100%);height:500px;overflow:hidden}
+.stage svg{width:100%;height:100%;display:block}
+
+.legend{display:flex;flex-wrap:wrap;gap:0.6rem 1.2rem;padding:1rem 2rem;background:var(--bg-light);border-top:1px solid var(--border);font-size:0.78rem;color:var(--text-secondary)}
+.legend-item{display:inline-flex;align-items:center;gap:0.4rem}
+.legend-dot{width:11px;height:11px;border-radius:50%;flex-shrink:0}
+
+.scene-body{padding:1.6rem 2rem 1.8rem;display:grid;grid-template-columns:1.3fr 1fr;gap:1.6rem;align-items:start}
+.scene-body .narration h3{font-family:'DM Serif Display',serif;font-size:1.1rem;color:var(--navy);margin-bottom:0.5rem}
+.scene-body .narration p{font-size:0.88rem;color:var(--text-secondary);line-height:1.7;margin-bottom:0.8rem}
+.scene-body .narration p strong{color:var(--navy);font-weight:700}
+.scene-body .narration p em{font-style:normal;color:var(--orange);font-weight:600}
+.recap-box{background:var(--navy-dark);color:#fff;border-radius:var(--radius-sm);padding:1.1rem 1.2rem}
+.recap-box h4{font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--orange-light);margin-bottom:0.6rem}
+.recap-box ul{list-style:none;padding:0}
+.recap-box li{font-size:0.82rem;color:rgba(255,255,255,0.85);line-height:1.55;padding:0.3rem 0;display:flex;align-items:flex-start;gap:0.5rem}
+.recap-box li::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--orange);margin-top:0.5rem;flex-shrink:0}
+
+.controls{display:flex;justify-content:space-between;align-items:center;padding:1.1rem 2rem;background:var(--bg-light);border-top:1px solid var(--border);gap:1rem;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:0.45rem;padding:0.65rem 1.4rem;border-radius:10px;font-size:0.85rem;font-weight:600;cursor:pointer;border:none;font-family:inherit;transition:all 0.2s}
+.btn-primary{background:var(--orange);color:#fff}
+.btn-primary:hover{background:var(--orange-dark);transform:translateY(-1px);box-shadow:0 4px 14px rgba(232,122,46,0.3)}
+.btn-primary:disabled{background:var(--text-muted);cursor:not-allowed;transform:none;box-shadow:none}
+.btn-outline{background:#fff;color:var(--navy);border:1.5px solid var(--border)}
+.btn-outline:hover{border-color:var(--orange);color:var(--orange)}
+.btn-outline:disabled{color:var(--text-muted);cursor:not-allowed;opacity:0.5}
+.replay-btn{background:transparent;color:var(--orange);border:1.5px dashed var(--orange);padding:0.55rem 1.1rem;border-radius:10px;font-weight:600;font-size:0.82rem;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:0.4rem}
+.replay-btn:hover{background:var(--orange-glow)}
+
+.node-label{font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:13px;fill:#fff;text-anchor:middle;pointer-events:none}
+.node-sub{font-family:'Plus Jakarta Sans',sans-serif;font-weight:500;font-size:10px;fill:rgba(255,255,255,0.85);text-anchor:middle;pointer-events:none}
+.node-tag{font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;font-size:9.5px;fill:var(--text-muted);text-anchor:middle;text-transform:uppercase;letter-spacing:0.06em;pointer-events:none}
+.user-bubble{font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;fill:var(--navy);font-weight:500;text-anchor:middle}
+.bg-grid{stroke:rgba(43,45,66,0.04);stroke-width:1;fill:none}
+
+.fade-el{opacity:0;transition:opacity 0.6s ease, transform 0.6s ease}
+.fade-el.show{opacity:1}
+
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+@keyframes float-y{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+
+.pulsing{animation:pulse 1.4s infinite}
+
+@media(max-width:880px){
+  .scene-body{grid-template-columns:1fr}
+  .stage{height:440px}
+}
+@media(max-width:600px){
+  .scene-head{padding:1.2rem 1.2rem 0.8rem}
+  .scene-head h2{font-size:1.25rem}
+  .scene-body{padding:1.2rem}
+  .controls{padding:1rem 1.2rem}
+  .stage{height:380px}
+  .top-logo-bar{padding:0.7rem 1rem}
+  .hero-head{padding:0 1.2rem;margin-top:1.5rem}
+  .container{padding:0 1rem}
+}
+</style>
+</head>
+<body>
+
+<div class="top-logo-bar">
+  <div>
+    <div class="brand-name">Moksh<em>Path</em></div>
+    <div class="brand-tag">AI-NATIVE LEARNING</div>
+  </div>
+  <div class="logo-wrap">
+    <img src="logo.svg" alt="MokshPath logo">
+  </div>
+</div>
+
+<div class="hero-head">
+  <div class="hero-badge"><span class="dot"></span> Module 02 · Visual Explainer</div>
+  <h1>Advanced <em>Memory</em></h1>
+  <p>See how AI agents remember conversations long-term using ChromaDB, share memories across teammates, and stay context-light by summarising what they've learned.</p>
+</div>
+
+<div class="container">
+
+  <div class="step-bar" id="stepBar">
+    <div class="step-pill" data-step="1"><span class="step-num">1</span> The forgetful agent</div>
+    <div class="step-pill" data-step="2"><span class="step-num">2</span> Embeddings &amp; vectors</div>
+    <div class="step-pill" data-step="3"><span class="step-num">3</span> Storing in ChromaDB</div>
+    <div class="step-pill" data-step="4"><span class="step-num">4</span> Cross-agent sharing</div>
+    <div class="step-pill" data-step="5"><span class="step-num">5</span> Summarisation</div>
+  </div>
+
+  <div class="scene-card">
+    <div class="scene-head">
+      <div class="scene-step-label" id="stepLabel">STEP 1 OF 5</div>
+      <h2 id="stepTitle">The forgetful agent problem</h2>
+      <p id="stepIntro">By default, an AI agent forgets everything once a chat ends. Ask it about yesterday's conversation — blank stare. Let's see why this is a problem and how memory fixes it.</p>
+    </div>
+
+    <div class="stage">
+      <svg viewBox="0 0 900 500" xmlns="http://www.w3.org/2000/svg" id="stageSvg">
+        <defs>
+          <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+            <path d="M 40 0 L 0 0 0 40" class="bg-grid"/>
+          </pattern>
+          <linearGradient id="agentGrad" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0" stop-color="#E87A2E"/>
+            <stop offset="1" stop-color="#D06A20"/>
+          </linearGradient>
+          <linearGradient id="chromaGrad" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0" stop-color="#7C4DFF"/>
+            <stop offset="1" stop-color="#5B2FE0"/>
+          </linearGradient>
+          <linearGradient id="memGrad" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0" stop-color="#FFF8E1"/>
+            <stop offset="1" stop-color="#FFE082"/>
+          </linearGradient>
+          <linearGradient id="summGrad" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0" stop-color="#4CAF50"/>
+            <stop offset="1" stop-color="#2E7D32"/>
+          </linearGradient>
+          <filter id="soft" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="6" result="blur"/>
+            <feOffset dy="3"/>
+            <feComponentTransfer><feFuncA type="linear" slope="0.2"/></feComponentTransfer>
+            <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+
+        <rect width="900" height="500" fill="url(#grid)"/>
+
+        <!-- USER -->
+        <g id="userGrp" transform="translate(70, 250)">
+          <circle r="32" fill="#fff" stroke="#E5DDD4" stroke-width="2"/>
+          <circle cy="-6" r="10" fill="#9597A6"/>
+          <path d="M -15 16 Q 0 4 15 16 L 15 24 L -15 24 Z" fill="#9597A6"/>
+          <text y="58" class="node-tag">USER</text>
+        </g>
+
+        <!-- AGENT (centre) -->
+        <g id="agentGrp" class="fade-el" transform="translate(450, 250)">
+          <circle r="50" fill="url(#agentGrad)" filter="url(#soft)"/>
+          <text y="-3" class="node-label">AI Agent</text>
+          <text y="13" class="node-sub">conversational</text>
+        </g>
+
+        <!-- DAY 1 / DAY 2 chat bubbles (Step 1) -->
+        <g id="day1Bubble" class="fade-el" transform="translate(200, 130)">
+          <rect x="0" y="0" width="220" height="46" rx="10" fill="#fff" stroke="#E5DDD4" stroke-width="1.5"/>
+          <text x="110" y="20" class="user-bubble" font-weight="600">Day 1: "I'm allergic to peanuts"</text>
+          <text x="110" y="36" class="user-bubble" fill="#6B6D7B" font-size="10">conversation 1</text>
+        </g>
+        <g id="day2Bubble" class="fade-el" transform="translate(200, 200)">
+          <rect x="0" y="0" width="220" height="46" rx="10" fill="#fff" stroke="#E5DDD4" stroke-width="1.5"/>
+          <text x="110" y="20" class="user-bubble" font-weight="600">Day 2: "Suggest dinner recipes"</text>
+          <text x="110" y="36" class="user-bubble" fill="#6B6D7B" font-size="10">conversation 2 — agent forgot!</text>
+        </g>
+
+        <!-- Forgot indicator -->
+        <g id="forgotIndicator" class="fade-el" transform="translate(540, 175)">
+          <text font-size="28">🧠</text>
+          <text x="0" y="40" font-size="11" fill="#D55222" font-weight="700">memory: empty</text>
+        </g>
+
+        <!-- Day 2 wrong reply -->
+        <g id="wrongReply" class="fade-el" transform="translate(560, 320)">
+          <rect x="0" y="0" width="270" height="46" rx="10" fill="#FFEBEE" stroke="#EF5350" stroke-width="1.5"/>
+          <text x="135" y="20" class="user-bubble" font-weight="600" fill="#C62828">"Try peanut butter cookies!" 🥜</text>
+          <text x="135" y="36" class="user-bubble" fill="#C62828" font-size="10">❌ dangerous — but agent doesn't know</text>
+        </g>
+
+        <!-- ========== STEP 2: EMBEDDINGS ========== -->
+        <!-- Text to vector visualization -->
+        <g id="embedGroup" class="fade-el">
+          <!-- input text -->
+          <g transform="translate(200, 200)">
+            <rect x="0" y="0" width="220" height="44" rx="10" fill="#fff" stroke="#E5DDD4" stroke-width="1.5"/>
+            <text x="110" y="20" class="user-bubble" font-weight="600">"I'm allergic to peanuts"</text>
+            <text x="110" y="36" class="user-bubble" fill="#6B6D7B" font-size="10">raw text</text>
+          </g>
+          <!-- arrow -->
+          <g transform="translate(440, 222)">
+            <line x1="0" y1="0" x2="40" y2="0" stroke="#9597A6" stroke-width="2"/>
+            <polygon points="40,0 34,-5 34,5" fill="#9597A6"/>
+          </g>
+          <!-- embedding model -->
+          <g transform="translate(500, 222)">
+            <rect x="0" y="-22" width="100" height="44" rx="10" fill="url(#agentGrad)"/>
+            <text x="50" y="-2" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">embedding</text>
+            <text x="50" y="12" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.85)">model</text>
+          </g>
+          <!-- arrow -->
+          <g transform="translate(620, 222)">
+            <line x1="0" y1="0" x2="40" y2="0" stroke="#9597A6" stroke-width="2"/>
+            <polygon points="40,0 34,-5 34,5" fill="#9597A6"/>
+          </g>
+          <!-- vector representation -->
+          <g transform="translate(680, 200)">
+            <rect x="0" y="0" width="180" height="44" rx="10" fill="#E8EAF6" stroke="#7C4DFF" stroke-width="1.5"/>
+            <text x="90" y="19" text-anchor="middle" font-family="monospace" font-size="10" fill="#5B2FE0" font-weight="700">[0.21, -0.47, 0.83, ...]</text>
+            <text x="90" y="34" class="user-bubble" fill="#5B2FE0" font-size="9">vector (1536 numbers)</text>
+          </g>
+
+          <!-- explainer below -->
+          <g transform="translate(450, 360)">
+            <rect x="-260" y="0" width="520" height="80" rx="12" fill="#fff" stroke="#E5DDD4" stroke-width="1.5"/>
+            <text x="0" y="22" text-anchor="middle" font-size="12" font-weight="700" fill="#2B2D42">Why vectors?</text>
+            <text x="0" y="40" text-anchor="middle" font-size="11" fill="#6B6D7B">Similar meanings → similar numbers. "peanut allergy" and</text>
+            <text x="0" y="56" text-anchor="middle" font-size="11" fill="#6B6D7B">"nut intolerance" land close together — even with different words.</text>
+            <text x="0" y="72" text-anchor="middle" font-size="11" fill="#E87A2E" font-weight="600">This lets us search by meaning, not just exact words.</text>
+          </g>
+        </g>
+
+        <!-- ========== STEP 3: CHROMADB ========== -->
+        <g id="chromaDbGroup" class="fade-el">
+          <!-- ChromaDB cylinder -->
+          <g transform="translate(700, 250)">
+            <ellipse cx="0" cy="-60" rx="80" ry="22" fill="#7C4DFF" stroke="#5B2FE0" stroke-width="2"/>
+            <path d="M -80 -60 L -80 60 Q -80 82 0 82 Q 80 82 80 60 L 80 -60" fill="url(#chromaGrad)" stroke="#5B2FE0" stroke-width="2"/>
+            <ellipse cx="0" cy="-60" rx="80" ry="22" fill="#9C6BFF"/>
+            <text x="0" y="-58" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">ChromaDB</text>
+            <text x="0" y="-42" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.85)">vector store</text>
+            <!-- stored items -->
+            <g class="stored-mem" id="storedMem1">
+              <rect x="-60" y="-25" width="120" height="18" rx="4" fill="rgba(255,255,255,0.18)"/>
+              <text x="-55" y="-12" font-size="9" fill="#fff" font-weight="500">peanut allergy [v]</text>
+            </g>
+            <g class="stored-mem" id="storedMem2">
+              <rect x="-60" y="0" width="120" height="18" rx="4" fill="rgba(255,255,255,0.18)"/>
+              <text x="-55" y="13" font-size="9" fill="#fff" font-weight="500">loves Italian food [v]</text>
+            </g>
+            <g class="stored-mem" id="storedMem3">
+              <rect x="-60" y="25" width="120" height="18" rx="4" fill="rgba(255,255,255,0.18)"/>
+              <text x="-55" y="38" font-size="9" fill="#fff" font-weight="500">vegetarian since 2020 [v]</text>
+            </g>
+            <g class="stored-mem" id="storedMem4">
+              <rect x="-60" y="50" width="120" height="18" rx="4" fill="rgba(255,255,255,0.18)"/>
+              <text x="-55" y="63" font-size="9" fill="#fff" font-weight="500">birthday: 12 Aug [v]</text>
+            </g>
+          </g>
+
+          <!-- store/retrieve arrows -->
+          <g transform="translate(540, 200)">
+            <path d="M 0 0 Q 30 -20 60 0" stroke="#4CAF50" stroke-width="2" fill="none" marker-end="url(#arrowGreen)"/>
+            <text x="30" y="-25" text-anchor="middle" font-size="10" font-weight="700" fill="#2E7D32">STORE</text>
+          </g>
+          <g transform="translate(540, 290)">
+            <path d="M 60 0 Q 30 20 0 0" stroke="#E87A2E" stroke-width="2" fill="none" marker-end="url(#arrowOrange)"/>
+            <text x="30" y="30" text-anchor="middle" font-size="10" font-weight="700" fill="#D06A20">RETRIEVE</text>
+          </g>
+
+          <!-- query/answer flow -->
+          <g transform="translate(200, 200)">
+            <rect x="0" y="0" width="240" height="38" rx="10" fill="#fff" stroke="#E5DDD4" stroke-width="1.5"/>
+            <text x="120" y="22" class="user-bubble" font-weight="600">"What can I eat for dinner?"</text>
+          </g>
+          <g transform="translate(200, 280)">
+            <rect x="0" y="0" width="240" height="38" rx="10" fill="#E8F5E9" stroke="#4CAF50" stroke-width="1.5"/>
+            <text x="120" y="22" class="user-bubble" fill="#2E7D32" font-weight="600">"Avoiding peanuts — try pasta 🍝"</text>
+          </g>
+          <g transform="translate(320, 240)">
+            <text font-family="DM Serif Display" font-size="14" text-anchor="middle" fill="#E87A2E">memory recalled ✓</text>
+          </g>
+        </g>
+
+        <!-- ========== STEP 4: CROSS-AGENT SHARING ========== -->
+        <g id="crossAgentGroup" class="fade-el">
+          <!-- 3 agents -->
+          <g transform="translate(200, 130)">
+            <circle r="38" fill="url(#agentGrad)" filter="url(#soft)"/>
+            <text y="-2" class="node-label" font-size="11">Chef Agent</text>
+            <text y="12" class="node-sub" font-size="9">cooking</text>
+          </g>
+          <g transform="translate(450, 130)">
+            <circle r="38" fill="#4285F4" filter="url(#soft)"/>
+            <text y="-2" class="node-label" font-size="11">Doctor Agent</text>
+            <text y="12" class="node-sub" font-size="9">health</text>
+          </g>
+          <g transform="translate(700, 130)">
+            <circle r="38" fill="url(#summGrad)" filter="url(#soft)"/>
+            <text y="-2" class="node-label" font-size="11">Travel Agent</text>
+            <text y="12" class="node-sub" font-size="9">trips</text>
+          </g>
+
+          <!-- shared ChromaDB at bottom -->
+          <g transform="translate(450, 350)">
+            <ellipse cx="0" cy="-50" rx="120" ry="22" fill="#7C4DFF" stroke="#5B2FE0" stroke-width="2"/>
+            <path d="M -120 -50 L -120 50 Q -120 72 0 72 Q 120 72 120 50 L 120 -50" fill="url(#chromaGrad)" stroke="#5B2FE0" stroke-width="2"/>
+            <ellipse cx="0" cy="-50" rx="120" ry="22" fill="#9C6BFF"/>
+            <text x="0" y="-48" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">Shared Memory (ChromaDB)</text>
+            <text x="0" y="-32" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.85)">accessible to every agent</text>
+            <g>
+              <text x="-90" y="-10" font-size="10" fill="#fff" font-weight="500">• allergic to peanuts</text>
+              <text x="-90" y="8" font-size="10" fill="#fff" font-weight="500">• vegetarian</text>
+              <text x="20" y="-10" font-size="10" fill="#fff" font-weight="500">• prefers window seat</text>
+              <text x="20" y="8" font-size="10" fill="#fff" font-weight="500">• based in Mumbai</text>
+            </g>
+          </g>
+
+          <!-- connection lines from agents to memory -->
+          <g stroke="#9597A6" stroke-width="2" stroke-dasharray="4 4" fill="none">
+            <path d="M 200 170 Q 270 240 380 305"/>
+            <path d="M 450 170 L 450 305"/>
+            <path d="M 700 170 Q 630 240 520 305"/>
+          </g>
+
+          <!-- caption -->
+          <g transform="translate(450, 470)">
+            <text text-anchor="middle" font-size="12" font-weight="600" fill="#E87A2E">No matter which agent the user talks to, they all remember the same facts.</text>
+          </g>
+        </g>
+
+        <!-- ========== STEP 5: SUMMARISATION ========== -->
+        <g id="summariseGroup" class="fade-el">
+          <!-- Long conversation -->
+          <g transform="translate(140, 100)">
+            <rect x="0" y="0" width="240" height="280" rx="12" fill="#fff" stroke="#E5DDD4" stroke-width="1.5"/>
+            <text x="120" y="22" text-anchor="middle" font-size="11" font-weight="700" fill="#2B2D42">Long conversation (50 msgs)</text>
+            <line x1="20" y1="34" x2="220" y2="34" stroke="#E5DDD4"/>
+            <g font-size="9" fill="#6B6D7B">
+              <text x="20" y="54">U: Hi, my name is Priya</text>
+              <text x="20" y="72">A: Nice to meet you!</text>
+              <text x="20" y="90">U: I'm allergic to peanuts</text>
+              <text x="20" y="108">A: Got it, I'll remember</text>
+              <text x="20" y="126">U: I work in Mumbai</text>
+              <text x="20" y="144">A: A wonderful city...</text>
+              <text x="20" y="162">U: Birthday is 12 Aug</text>
+              <text x="20" y="180">A: I'll note that</text>
+              <text x="20" y="198">U: My partner is named Raj</text>
+              <text x="20" y="216">A: Lovely!</text>
+              <text x="20" y="234" fill="#9597A6">... 40 more messages ...</text>
+              <text x="20" y="252">U: I love Italian food</text>
+              <text x="20" y="270" fill="#D55222" font-weight="700">⚠ Context window full</text>
+            </g>
+          </g>
+
+          <!-- summariser -->
+          <g transform="translate(450, 240)">
+            <rect x="-65" y="-30" width="130" height="60" rx="14" fill="url(#summGrad)" filter="url(#soft)"/>
+            <text x="0" y="-6" text-anchor="middle" font-size="13" font-weight="700" fill="#fff">Summariser</text>
+            <text x="0" y="10" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.85)">compresses</text>
+            <text x="0" y="24" text-anchor="middle" font-size="10" fill="rgba(255,255,255,0.85)">long → short</text>
+          </g>
+
+          <!-- arrows -->
+          <g stroke="#9597A6" stroke-width="2" fill="none">
+            <line x1="384" y1="240" x2="380" y2="240" marker-end="url(#arrowGrey)"/>
+            <line x1="380" y1="240" x2="380" y2="240"/>
+            <path d="M 384 240 L 380 240" marker-end="url(#arrowGrey)"/>
+          </g>
+          <g transform="translate(382, 240)">
+            <line x1="0" y1="0" x2="36" y2="0" stroke="#9597A6" stroke-width="2"/>
+            <polygon points="36,0 30,-5 30,5" fill="#9597A6"/>
+          </g>
+          <g transform="translate(517, 240)">
+            <line x1="0" y1="0" x2="36" y2="0" stroke="#9597A6" stroke-width="2"/>
+            <polygon points="36,0 30,-5 30,5" fill="#9597A6"/>
+          </g>
+
+          <!-- summary output -->
+          <g transform="translate(560, 130)">
+            <rect x="0" y="0" width="280" height="220" rx="12" fill="#E8F5E9" stroke="#4CAF50" stroke-width="1.5"/>
+            <text x="140" y="22" text-anchor="middle" font-size="11" font-weight="700" fill="#2E7D32">Compressed memory</text>
+            <line x1="20" y1="34" x2="260" y2="34" stroke="#4CAF50" opacity="0.3"/>
+            <g font-size="11" fill="#1B5E20" font-weight="500">
+              <text x="20" y="58">👤 <tspan font-weight="700">User:</tspan> Priya, Mumbai</text>
+              <text x="20" y="80">🎂 <tspan font-weight="700">Born:</tspan> 12 Aug</text>
+              <text x="20" y="102">⚠️ <tspan font-weight="700">Allergy:</tspan> peanuts</text>
+              <text x="20" y="124">❤️ <tspan font-weight="700">Partner:</tspan> Raj</text>
+              <text x="20" y="146">🍝 <tspan font-weight="700">Likes:</tspan> Italian food</text>
+              <text x="20" y="180" font-size="10" fill="#2E7D32" font-style="italic">50 messages → 5 key facts</text>
+              <text x="20" y="198" font-size="10" fill="#2E7D32" font-weight="700">✓ tiny, fast, still useful</text>
+            </g>
+          </g>
+        </g>
+
+        <!-- arrow markers -->
+        <defs>
+          <marker id="arrowGreen" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L9,3 z" fill="#4CAF50"/>
+          </marker>
+          <marker id="arrowOrange" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L9,3 z" fill="#E87A2E"/>
+          </marker>
+          <marker id="arrowGrey" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L9,3 z" fill="#9597A6"/>
+          </marker>
+        </defs>
+
+      </svg>
+    </div>
+
+    <div class="legend">
+      <div class="legend-item"><span class="legend-dot" style="background:#E87A2E"></span>AI Agent</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#7C4DFF"></span>ChromaDB (vector store)</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#4CAF50"></span>Summariser</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#4285F4"></span>Other agents</div>
+    </div>
+
+    <div class="scene-body">
+      <div class="narration" id="narrationBox">
+        <h3 id="narrTitle">An agent without memory is dangerous</h3>
+        <p id="narrText1">On <em>Day 1</em>, the user tells the agent "I'm allergic to peanuts." But by <em>Day 2</em>, the agent has forgotten everything. When asked for dinner ideas, it cheerfully suggests <strong>peanut butter cookies</strong>.</p>
+        <p id="narrText2">This is the default for most LLMs — they remember nothing between sessions. We need long-term memory to make agents truly useful.</p>
+      </div>
+      <div class="recap-box">
+        <h4>Key Insight</h4>
+        <ul id="recapList">
+          <li>LLMs forget between sessions by default</li>
+          <li>Without memory, agents repeat mistakes</li>
+          <li>We need persistent, searchable storage</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="btn btn-outline" id="prevBtn" disabled>← Previous</button>
+      <button class="replay-btn" id="replayBtn">↻ Replay animation</button>
+      <button class="btn btn-primary" id="nextBtn">Next step →</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+let currentStep = 1;
+const TOTAL_STEPS = 5;
+let activeTimeouts = [];
+
+const STEPS = {
+  1: {
+    label: 'STEP 1 OF 5',
+    title: 'The forgetful agent problem',
+    intro: 'By default, an AI agent forgets everything once a chat ends. Ask it about yesterday\'s conversation — blank stare. Let\'s see why this is a problem and how memory fixes it.',
+    narrTitle: 'An agent without memory is dangerous',
+    narrText1: 'On <em>Day 1</em>, the user tells the agent "I\'m allergic to peanuts." But by <em>Day 2</em>, the agent has forgotten everything. When asked for dinner ideas, it cheerfully suggests <strong>peanut butter cookies</strong>.',
+    narrText2: 'This is the default for most LLMs — they remember nothing between sessions. We need long-term memory to make agents truly useful.',
+    recap: [
+      'LLMs forget between sessions by default',
+      'Without memory, agents repeat mistakes',
+      'We need persistent, searchable storage'
+    ]
+  },
+  2: {
+    label: 'STEP 2 OF 5',
+    title: 'Embeddings: turning words into numbers',
+    intro: 'Before we can store memory, we convert each piece of text into a list of numbers — a "vector" — that captures its meaning. This makes meaning searchable.',
+    narrTitle: 'Meaning, encoded as numbers',
+    narrText1: 'An <em>embedding model</em> reads text and outputs a vector — usually 1536 numbers. Sentences with similar meaning produce similar vectors, even if they use different words.',
+    narrText2: 'This is the secret sauce: "peanut allergy" and "I can\'t eat nuts" become <strong>near-twins in vector space</strong>, so search-by-meaning becomes possible.',
+    recap: [
+      'Embedding model: text → vector of numbers',
+      'Similar meaning → similar numbers',
+      'Enables search by meaning, not just words'
+    ]
+  },
+  3: {
+    label: 'STEP 3 OF 5',
+    title: 'ChromaDB: long-term memory storage',
+    intro: 'ChromaDB is a vector database. We store every memory as a vector, and later we ask "give me the most relevant memories for this question."',
+    narrTitle: 'A library for vectors, not books',
+    narrText1: 'Every fact the agent learns — allergies, preferences, history — gets <em>embedded</em> and stored in ChromaDB along with the original text. The database keeps them organised by similarity.',
+    narrText2: 'When a new question arrives, ChromaDB finds the <strong>most relevant memories</strong> in milliseconds, even across millions of entries. The agent injects them into its prompt and answers correctly.',
+    recap: [
+      'ChromaDB stores text + its vector',
+      'Search returns most-similar memories fast',
+      'Agent retrieves only what\'s relevant — no clutter'
+    ]
+  },
+  4: {
+    label: 'STEP 4 OF 5',
+    title: 'Cross-agent memory sharing',
+    intro: 'One shared memory store, many agents reading from it. The user tells the Chef Agent about an allergy — and the Doctor Agent and Travel Agent know it too.',
+    narrTitle: 'One memory, many agents',
+    narrText1: 'In a multi-agent system, each agent is a specialist — but they all serve the <strong>same user</strong>. If memory is locked inside one agent, the others stay clueless.',
+    narrText2: 'By pointing every agent at the <em>same ChromaDB instance</em>, knowledge flows across the whole team automatically. The user never has to repeat themselves.',
+    recap: [
+      'Shared ChromaDB = single source of truth',
+      'New facts learned by one agent help all',
+      'User says it once — every agent remembers'
+    ]
+  },
+  5: {
+    label: 'STEP 5 OF 5',
+    title: 'Summarisation: keeping memory lean',
+    intro: 'Over time, conversations get long. Instead of dumping all 50 messages into every prompt, we summarise them into a short, dense memory.',
+    narrTitle: 'Compress what matters, drop what doesn\'t',
+    narrText1: 'A <em>Summariser</em> agent runs periodically. It reads the long history and produces a 5-line digest: name, location, allergies, preferences, key facts. That digest replaces the raw messages.',
+    narrText2: 'Why bother? Two reasons: <strong>cost</strong> (LLM calls are priced per token) and <strong>quality</strong> (models perform worse with stuffed context). Summarisation keeps memory rich and the prompt short.',
+    recap: [
+      'Summariser turns long chats → short digests',
+      'Cuts token cost dramatically',
+      'Keeps the agent fast and focused'
+    ]
+  }
+};
+
+function clearTimeouts() { activeTimeouts.forEach(t => clearTimeout(t)); activeTimeouts = []; }
+function delay(fn, ms) { const t = setTimeout(fn, ms); activeTimeouts.push(t); return t; }
+function showEl(id) { const el = document.getElementById(id); if (el) el.classList.add('show'); }
+function hideEl(id) { const el = document.getElementById(id); if (el) el.classList.remove('show'); }
+
+function resetStage() {
+  clearTimeouts();
+  ['agentGrp', 'day1Bubble', 'day2Bubble', 'forgotIndicator', 'wrongReply',
+   'embedGroup', 'chromaDbGroup', 'crossAgentGroup', 'summariseGroup'].forEach(hideEl);
+  // hide individual stored memories
+  document.querySelectorAll('.stored-mem').forEach(el => el.style.opacity = '0');
+}
+
+function runStep1() {
+  resetStage();
+  delay(() => showEl('agentGrp'), 200);
+  delay(() => showEl('day1Bubble'), 900);
+  delay(() => showEl('day2Bubble'), 1900);
+  delay(() => showEl('forgotIndicator'), 2700);
+  delay(() => showEl('wrongReply'), 3400);
+}
+
+function runStep2() {
+  resetStage();
+  delay(() => showEl('embedGroup'), 200);
+}
+
+function runStep3() {
+  resetStage();
+  delay(() => showEl('chromaDbGroup'), 200);
+  // animate stored memories appearing
+  const memIds = ['storedMem1', 'storedMem2', 'storedMem3', 'storedMem4'];
+  memIds.forEach((id, i) => {
+    delay(() => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.style.transition = 'opacity 0.5s';
+        el.style.opacity = '1';
+      }
+    }, 700 + i * 350);
+  });
+}
+
+function runStep4() {
+  resetStage();
+  delay(() => showEl('crossAgentGroup'), 200);
+}
+
+function runStep5() {
+  resetStage();
+  delay(() => showEl('summariseGroup'), 200);
+}
+
+const stepRunners = {1: runStep1, 2: runStep2, 3: runStep3, 4: runStep4, 5: runStep5};
+
+function updateUI() {
+  const data = STEPS[currentStep];
+  document.getElementById('stepLabel').textContent = data.label;
+  document.getElementById('stepTitle').textContent = data.title;
+  document.getElementById('stepIntro').textContent = data.intro;
+  document.getElementById('narrTitle').textContent = data.narrTitle;
+  document.getElementById('narrText1').innerHTML = data.narrText1;
+  document.getElementById('narrText2').innerHTML = data.narrText2;
+  const recapList = document.getElementById('recapList');
+  recapList.innerHTML = '';
+  data.recap.forEach(item => {
+    const li = document.createElement('li');
+    li.textContent = item;
+    recapList.appendChild(li);
+  });
+  document.getElementById('prevBtn').disabled = currentStep === 1;
+  const nextBtn = document.getElementById('nextBtn');
+  nextBtn.textContent = currentStep === TOTAL_STEPS ? 'Restart from start ↻' : 'Next step →';
+  document.querySelectorAll('.step-pill').forEach((pill, idx) => {
+    pill.classList.remove('active', 'done');
+    const stepNum = idx + 1;
+    if (stepNum === currentStep) pill.classList.add('active');
+    else if (stepNum < currentStep) pill.classList.add('done');
+  });
+}
+
+function goToStep(n) { currentStep = n; updateUI(); stepRunners[n](); }
+
+document.getElementById('nextBtn').addEventListener('click', () => {
+  if (currentStep < TOTAL_STEPS) goToStep(currentStep + 1);
+  else goToStep(1);
+});
+document.getElementById('prevBtn').addEventListener('click', () => {
+  if (currentStep > 1) goToStep(currentStep - 1);
+});
+document.getElementById('replayBtn').addEventListener('click', () => stepRunners[currentStep]());
+document.querySelectorAll('.step-pill').forEach((pill, idx) => {
+  pill.addEventListener('click', () => goToStep(idx + 1));
+});
+
+updateUI();
+goToStep(1);
+</script>
+</body>
+</html>

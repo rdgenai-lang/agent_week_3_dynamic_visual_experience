@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Multi-Agent Architecture — Visual Explainer</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --orange:#E87A2E;--orange-dark:#D06A20;--orange-light:#F5943E;--orange-glow:rgba(232,122,46,0.12);
+  --navy:#2B2D42;--navy-dark:#1A1B2E;
+  --bg:#F3EDE7;--bg-card:#FFFFFF;--bg-light:#F9F5F0;
+  --text-primary:#2B2D42;--text-secondary:#6B6D7B;--text-muted:#9597A6;
+  --border:#E5DDD4;--green:#4CAF50;--green-light:#E8F5E9;--blue:#4285F4;--purple:#7C4DFF;
+  --shadow-sm:0 2px 8px rgba(43,45,66,0.06);--shadow-md:0 8px 24px rgba(43,45,66,0.08);
+  --shadow-lg:0 16px 48px rgba(43,45,66,0.12);
+  --radius:14px;--radius-sm:8px
+}
+html{scroll-behavior:smooth}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text-primary);min-height:100vh;padding-bottom:3rem;-webkit-font-smoothing:antialiased}
+
+/* Top Logo Bar */
+.top-logo-bar{background:var(--bg-card);border-bottom:1px solid var(--border);padding:0.9rem 2rem;display:flex;justify-content:space-between;align-items:center;box-shadow:var(--shadow-sm)}
+.brand-name{font-family:'DM Serif Display',serif;font-size:1.2rem;color:var(--navy)}
+.brand-name em{font-style:normal;color:var(--orange)}
+.brand-tag{font-size:0.68rem;color:var(--text-muted);font-weight:500;letter-spacing:0.04em;margin-top:0.1rem}
+.logo-wrap{width:44px;height:44px;display:flex;align-items:center;justify-content:center}
+.logo-wrap img{width:100%;height:100%;object-fit:contain}
+
+/* Header */
+.hero-head{max-width:1160px;margin:2.5rem auto 2rem;padding:0 2rem;text-align:center}
+.hero-badge{display:inline-flex;align-items:center;gap:0.45rem;padding:0.4rem 1rem;border-radius:50px;background:var(--orange-glow);color:var(--orange);font-size:0.7rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:1rem}
+.hero-badge .dot{width:7px;height:7px;border-radius:50%;background:var(--orange);animation:pulse 2s infinite}
+.hero-head h1{font-family:'DM Serif Display',serif;font-size:clamp(1.9rem,3.6vw,2.8rem);line-height:1.18;color:var(--navy);margin-bottom:0.7rem}
+.hero-head h1 em{font-style:normal;color:var(--orange)}
+.hero-head p{font-size:0.98rem;color:var(--text-secondary);line-height:1.65;max-width:620px;margin:0 auto}
+
+/* Container */
+.container{max-width:1160px;margin:0 auto;padding:0 2rem}
+
+/* Step navigator */
+.step-bar{display:flex;align-items:center;justify-content:center;gap:0;margin:2rem auto 2.5rem;flex-wrap:wrap;max-width:780px}
+.step-pill{display:flex;align-items:center;gap:0.5rem;padding:0.45rem 1rem;border-radius:50px;background:var(--bg-card);border:1.5px solid var(--border);font-size:0.78rem;font-weight:600;color:var(--text-secondary);cursor:pointer;transition:all 0.25s;margin:0.25rem}
+.step-pill.active{background:var(--orange);color:#fff;border-color:var(--orange);box-shadow:0 4px 14px rgba(232,122,46,0.3)}
+.step-pill.done{background:var(--green-light);color:var(--green);border-color:#A5D6A7}
+.step-pill .step-num{width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,0.06);display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:800}
+.step-pill.active .step-num{background:rgba(255,255,255,0.25)}
+.step-pill.done .step-num{background:rgba(76,175,80,0.2)}
+
+/* Scene card */
+.scene-card{background:var(--bg-card);border-radius:var(--radius);box-shadow:var(--shadow-md);overflow:hidden;border:1px solid var(--border)}
+.scene-head{padding:1.6rem 2rem 1rem;border-bottom:1px solid var(--border);background:var(--bg-light)}
+.scene-step-label{font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--orange);margin-bottom:0.4rem}
+.scene-head h2{font-family:'DM Serif Display',serif;font-size:1.55rem;color:var(--navy);margin-bottom:0.3rem;line-height:1.25}
+.scene-head p{font-size:0.9rem;color:var(--text-secondary);line-height:1.6;max-width:780px}
+
+.stage{position:relative;background:linear-gradient(135deg,#FAF6F1 0%,#F3EDE7 100%);height:480px;overflow:hidden}
+.stage svg{width:100%;height:100%;display:block}
+
+.legend{display:flex;flex-wrap:wrap;gap:0.6rem 1.2rem;padding:1rem 2rem;background:var(--bg-light);border-top:1px solid var(--border);font-size:0.78rem;color:var(--text-secondary)}
+.legend-item{display:inline-flex;align-items:center;gap:0.4rem}
+.legend-dot{width:11px;height:11px;border-radius:50%;flex-shrink:0}
+
+.scene-body{padding:1.6rem 2rem 1.8rem;display:grid;grid-template-columns:1.3fr 1fr;gap:1.6rem;align-items:start}
+.scene-body .narration h3{font-family:'DM Serif Display',serif;font-size:1.1rem;color:var(--navy);margin-bottom:0.5rem}
+.scene-body .narration p{font-size:0.88rem;color:var(--text-secondary);line-height:1.7;margin-bottom:0.8rem}
+.scene-body .narration p strong{color:var(--navy);font-weight:700}
+.scene-body .narration p em{font-style:normal;color:var(--orange);font-weight:600}
+.recap-box{background:var(--navy-dark);color:#fff;border-radius:var(--radius-sm);padding:1.1rem 1.2rem}
+.recap-box h4{font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--orange-light);margin-bottom:0.6rem}
+.recap-box ul{list-style:none;padding:0}
+.recap-box li{font-size:0.82rem;color:rgba(255,255,255,0.85);line-height:1.55;padding:0.3rem 0;display:flex;align-items:flex-start;gap:0.5rem}
+.recap-box li::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--orange);margin-top:0.5rem;flex-shrink:0}
+
+/* Controls */
+.controls{display:flex;justify-content:space-between;align-items:center;padding:1.1rem 2rem;background:var(--bg-light);border-top:1px solid var(--border);gap:1rem;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:0.45rem;padding:0.65rem 1.4rem;border-radius:10px;font-size:0.85rem;font-weight:600;cursor:pointer;border:none;font-family:inherit;transition:all 0.2s}
+.btn-primary{background:var(--orange);color:#fff}
+.btn-primary:hover{background:var(--orange-dark);transform:translateY(-1px);box-shadow:0 4px 14px rgba(232,122,46,0.3)}
+.btn-primary:disabled{background:var(--text-muted);cursor:not-allowed;transform:none;box-shadow:none}
+.btn-outline{background:#fff;color:var(--navy);border:1.5px solid var(--border)}
+.btn-outline:hover{border-color:var(--orange);color:var(--orange)}
+.btn-outline:disabled{color:var(--text-muted);cursor:not-allowed;opacity:0.5}
+.replay-btn{background:transparent;color:var(--orange);border:1.5px dashed var(--orange);padding:0.55rem 1.1rem;border-radius:10px;font-weight:600;font-size:0.82rem;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:0.4rem}
+.replay-btn:hover{background:var(--orange-glow)}
+
+/* SVG entity styles */
+.node-label{font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:13px;fill:#fff;text-anchor:middle;pointer-events:none}
+.node-sub{font-family:'Plus Jakarta Sans',sans-serif;font-weight:500;font-size:10px;fill:rgba(255,255,255,0.85);text-anchor:middle;pointer-events:none}
+.node-tag{font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;font-size:9.5px;fill:var(--text-muted);text-anchor:middle;text-transform:uppercase;letter-spacing:0.06em;pointer-events:none}
+.user-bubble{font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;fill:var(--navy);font-weight:500;text-anchor:middle}
+.bg-grid{stroke:rgba(43,45,66,0.04);stroke-width:1;fill:none}
+
+/* Hidden initially */
+.fade-el{opacity:0;transition:opacity 0.6s ease, transform 0.6s ease}
+.fade-el.show{opacity:1}
+.slide-in{transform:translateY(20px)}
+.slide-in.show{transform:translateY(0)}
+
+/* Pulse */
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+@keyframes glow{0%,100%{filter:drop-shadow(0 0 0 transparent)}50%{filter:drop-shadow(0 0 12px var(--orange))}}
+@keyframes msgFlow{from{stroke-dashoffset:120}to{stroke-dashoffset:0}}
+
+.pulsing{animation:pulse 1.4s infinite}
+.glowing{animation:glow 1.8s infinite}
+
+/* Message dot */
+.msg-dot{filter:drop-shadow(0 0 6px rgba(232,122,46,0.6))}
+
+@media(max-width:880px){
+  .scene-body{grid-template-columns:1fr}
+  .stage{height:420px}
+}
+@media(max-width:600px){
+  .scene-head{padding:1.2rem 1.2rem 0.8rem}
+  .scene-head h2{font-size:1.25rem}
+  .scene-body{padding:1.2rem}
+  .controls{padding:1rem 1.2rem}
+  .stage{height:360px}
+  .top-logo-bar{padding:0.7rem 1rem}
+  .hero-head{padding:0 1.2rem;margin-top:1.5rem}
+  .container{padding:0 1rem}
+}
+</style>
+</head>
+<body>
+
+<!-- Top brand bar -->
+<div class="top-logo-bar">
+  <div>
+    <div class="brand-name">Moksh<em>Path</em></div>
+    <div class="brand-tag">AI-NATIVE LEARNING</div>
+  </div>
+  <div class="logo-wrap">
+    <img src="logo.svg" alt="MokshPath logo">
+  </div>
+</div>
+
+<!-- Header -->
+<div class="hero-head">
+  <div class="hero-badge"><span class="dot"></span> Module 01 · Visual Explainer</div>
+  <h1>Multi-Agent <em>Architecture</em></h1>
+  <p>Watch how a team of specialized AI agents works together — a Coordinator delegates, Workers execute, and a Shared State keeps everyone in sync. Built on LangGraph nodes and edges.</p>
+</div>
+
+<div class="container">
+
+  <!-- Step pills -->
+  <div class="step-bar" id="stepBar">
+    <div class="step-pill" data-step="1"><span class="step-num">1</span> Single agent limits</div>
+    <div class="step-pill" data-step="2"><span class="step-num">2</span> Coordinator + Workers</div>
+    <div class="step-pill" data-step="3"><span class="step-num">3</span> Message passing</div>
+    <div class="step-pill" data-step="4"><span class="step-num">4</span> Shared state</div>
+    <div class="step-pill" data-step="5"><span class="step-num">5</span> LangGraph view</div>
+  </div>
+
+  <!-- Scene card -->
+  <div class="scene-card">
+    <div class="scene-head">
+      <div class="scene-step-label" id="stepLabel">STEP 1 OF 5</div>
+      <h2 id="stepTitle">When one agent isn't enough</h2>
+      <p id="stepIntro">A single AI agent can answer questions — but ask it to plan a trip, book it, and email confirmations, and it juggles too many things at once. Let's see what happens.</p>
+    </div>
+
+    <!-- Animation stage -->
+    <div class="stage">
+      <svg viewBox="0 0 900 480" xmlns="http://www.w3.org/2000/svg" id="stageSvg">
+
+        <!-- Defs -->
+        <defs>
+          <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+            <path d="M 40 0 L 0 0 0 40" class="bg-grid"/>
+          </pattern>
+          <linearGradient id="coordGrad" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0" stop-color="#E87A2E"/>
+            <stop offset="1" stop-color="#D06A20"/>
+          </linearGradient>
+          <linearGradient id="workerGrad1" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0" stop-color="#4285F4"/>
+            <stop offset="1" stop-color="#2962CC"/>
+          </linearGradient>
+          <linearGradient id="workerGrad2" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0" stop-color="#4CAF50"/>
+            <stop offset="1" stop-color="#2E7D32"/>
+          </linearGradient>
+          <linearGradient id="workerGrad3" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0" stop-color="#7C4DFF"/>
+            <stop offset="1" stop-color="#5B2FE0"/>
+          </linearGradient>
+          <linearGradient id="stateGrad" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0" stop-color="#FFF8E1"/>
+            <stop offset="1" stop-color="#FFE082"/>
+          </linearGradient>
+          <filter id="soft" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="6" result="blur"/>
+            <feOffset dy="3"/>
+            <feComponentTransfer><feFuncA type="linear" slope="0.2"/></feComponentTransfer>
+            <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+
+        <!-- Background grid -->
+        <rect width="900" height="480" fill="url(#grid)"/>
+
+        <!-- USER (always visible) -->
+        <g id="userGrp" transform="translate(70, 240)">
+          <circle r="34" fill="#fff" stroke="#E5DDD4" stroke-width="2"/>
+          <circle cy="-6" r="11" fill="#9597A6"/>
+          <path d="M -16 18 Q 0 4 16 18 L 16 26 L -16 26 Z" fill="#9597A6"/>
+          <text y="62" class="node-tag">USER</text>
+        </g>
+
+        <!-- User message bubble -->
+        <g id="userMsg" class="fade-el" transform="translate(180, 195)">
+          <rect x="0" y="0" width="180" height="56" rx="12" fill="#fff" stroke="#E5DDD4" stroke-width="1.5"/>
+          <path d="M 0 30 L -8 36 L 0 42 Z" fill="#fff" stroke="#E5DDD4" stroke-width="1.5"/>
+          <text x="90" y="22" class="user-bubble" font-weight="600">"Plan a 3-day Goa trip,</text>
+          <text x="90" y="38" class="user-bubble">book it, and email me."</text>
+        </g>
+
+        <!-- SINGLE AGENT (Step 1) -->
+        <g id="singleAgent" class="fade-el" transform="translate(540, 240)">
+          <circle r="55" fill="url(#coordGrad)" filter="url(#soft)"/>
+          <text y="-4" class="node-label">AI Agent</text>
+          <text y="14" class="node-sub">all-in-one</text>
+          <text y="80" class="node-tag">OVERWHELMED</text>
+          <!-- juggling icons -->
+          <g id="jugglingIcons" class="fade-el">
+            <circle cx="-70" cy="-50" r="14" fill="#fff" stroke="#E5DDD4" stroke-width="1.5"/>
+            <text x="-70" y="-46" text-anchor="middle" font-size="14">📍</text>
+            <circle cx="70" cy="-60" r="14" fill="#fff" stroke="#E5DDD4" stroke-width="1.5"/>
+            <text x="70" y="-56" text-anchor="middle" font-size="14">✈️</text>
+            <circle cx="-65" cy="60" r="14" fill="#fff" stroke="#E5DDD4" stroke-width="1.5"/>
+            <text x="-65" y="64" text-anchor="middle" font-size="14">🏨</text>
+            <circle cx="75" cy="55" r="14" fill="#fff" stroke="#E5DDD4" stroke-width="1.5"/>
+            <text x="75" y="59" text-anchor="middle" font-size="14">📧</text>
+          </g>
+          <!-- error/sweat indicator -->
+          <g id="overwhelmIndicator" class="fade-el">
+            <text x="0" y="-72" text-anchor="middle" font-size="22">😵‍💫</text>
+          </g>
+        </g>
+
+        <!-- COORDINATOR (Step 2+) -->
+        <g id="coordinator" class="fade-el slide-in" transform="translate(450, 110)">
+          <circle r="46" fill="url(#coordGrad)" filter="url(#soft)"/>
+          <text y="-4" class="node-label">Coordinator</text>
+          <text y="13" class="node-sub">delegates tasks</text>
+        </g>
+
+        <!-- WORKERS (Step 2+) -->
+        <g id="worker1" class="fade-el slide-in" transform="translate(225, 320)">
+          <rect x="-58" y="-32" width="116" height="64" rx="12" fill="url(#workerGrad1)" filter="url(#soft)"/>
+          <text y="-6" class="node-label">Planner</text>
+          <text y="10" class="node-sub">research &amp; itinerary</text>
+        </g>
+
+        <g id="worker2" class="fade-el slide-in" transform="translate(450, 380)">
+          <rect x="-58" y="-32" width="116" height="64" rx="12" fill="url(#workerGrad2)" filter="url(#soft)"/>
+          <text y="-6" class="node-label">Booker</text>
+          <text y="10" class="node-sub">flights &amp; hotels</text>
+        </g>
+
+        <g id="worker3" class="fade-el slide-in" transform="translate(675, 320)">
+          <rect x="-58" y="-32" width="116" height="64" rx="12" fill="url(#workerGrad3)" filter="url(#soft)"/>
+          <text y="-6" class="node-label">Notifier</text>
+          <text y="10" class="node-sub">sends email</text>
+        </g>
+
+        <!-- Connection lines (Step 2+) -->
+        <g id="connections" class="fade-el">
+          <path d="M 422 145 Q 330 230 270 295" stroke="#9597A6" stroke-width="2" stroke-dasharray="4 4" fill="none"/>
+          <path d="M 450 156 L 450 345" stroke="#9597A6" stroke-width="2" stroke-dasharray="4 4" fill="none"/>
+          <path d="M 478 145 Q 580 230 630 295" stroke="#9597A6" stroke-width="2" stroke-dasharray="4 4" fill="none"/>
+        </g>
+
+        <!-- SHARED STATE (Step 4+) -->
+        <g id="sharedState" class="fade-el" transform="translate(450, 240)">
+          <rect x="-72" y="-44" width="144" height="88" rx="12" fill="url(#stateGrad)" stroke="#E0A800" stroke-width="2" filter="url(#soft)"/>
+          <text x="0" y="-22" text-anchor="middle" font-size="11" font-weight="700" fill="#8D6E00" letter-spacing="0.5">SHARED STATE</text>
+          <line x1="-58" y1="-12" x2="58" y2="-12" stroke="#E0A800" stroke-width="1" opacity="0.5"/>
+          <text x="-58" y="2" font-size="10" fill="#5D4A00" font-weight="500">trip: Goa, 3 days</text>
+          <text x="-58" y="16" font-size="10" fill="#5D4A00" font-weight="500">budget: ₹25,000</text>
+          <text x="-58" y="30" font-size="10" fill="#5D4A00" font-weight="500">user: priya@…</text>
+        </g>
+
+        <!-- MESSAGES container for animations -->
+        <g id="messages"></g>
+
+        <!-- Step 5: LangGraph view -->
+        <g id="langGraphView" class="fade-el">
+          <!-- START node -->
+          <g transform="translate(120, 240)">
+            <circle r="28" fill="#fff" stroke="#4CAF50" stroke-width="3"/>
+            <text y="4" text-anchor="middle" font-size="11" font-weight="700" fill="#2E7D32">START</text>
+          </g>
+          <!-- coordinator node -->
+          <g transform="translate(280, 240)">
+            <rect x="-50" y="-25" width="100" height="50" rx="10" fill="#E87A2E"/>
+            <text y="-2" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">coordinator</text>
+            <text y="14" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.85)">node</text>
+          </g>
+          <!-- Conditional diamond -->
+          <g transform="translate(440, 240)">
+            <polygon points="0,-32 32,0 0,32 -32,0" fill="#fff" stroke="#9597A6" stroke-width="2"/>
+            <text y="-2" text-anchor="middle" font-size="10" font-weight="700" fill="#2B2D42">route?</text>
+            <text y="12" text-anchor="middle" font-size="8" fill="#6B6D7B">edge logic</text>
+          </g>
+          <!-- 3 worker nodes -->
+          <g transform="translate(620, 130)">
+            <rect x="-50" y="-22" width="100" height="44" rx="10" fill="#4285F4"/>
+            <text y="0" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">planner</text>
+            <text y="14" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.85)">node</text>
+          </g>
+          <g transform="translate(620, 240)">
+            <rect x="-50" y="-22" width="100" height="44" rx="10" fill="#4CAF50"/>
+            <text y="0" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">booker</text>
+            <text y="14" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.85)">node</text>
+          </g>
+          <g transform="translate(620, 350)">
+            <rect x="-50" y="-22" width="100" height="44" rx="10" fill="#7C4DFF"/>
+            <text y="0" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">notifier</text>
+            <text y="14" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.85)">node</text>
+          </g>
+          <!-- END node -->
+          <g transform="translate(800, 240)">
+            <circle r="28" fill="#fff" stroke="#D55222" stroke-width="3"/>
+            <text y="4" text-anchor="middle" font-size="11" font-weight="700" fill="#D55222">END</text>
+          </g>
+          <!-- edges -->
+          <g stroke="#6B6D7B" stroke-width="2" fill="none" marker-end="url(#arrow)">
+            <line x1="148" y1="240" x2="225" y2="240"/>
+            <line x1="335" y1="240" x2="408" y2="240"/>
+            <line x1="464" y1="223" x2="565" y2="142"/>
+            <line x1="472" y1="240" x2="565" y2="240"/>
+            <line x1="464" y1="257" x2="565" y2="338"/>
+            <line x1="675" y1="130" x2="775" y2="225"/>
+            <line x1="675" y1="240" x2="772" y2="240"/>
+            <line x1="675" y1="350" x2="775" y2="258"/>
+          </g>
+          <!-- edge labels -->
+          <text x="510" y="180" font-size="9" font-weight="600" fill="#6B6D7B">if plan</text>
+          <text x="510" y="232" font-size="9" font-weight="600" fill="#6B6D7B">if book</text>
+          <text x="510" y="304" font-size="9" font-weight="600" fill="#6B6D7B">if notify</text>
+          <!-- title -->
+          <text x="450" y="50" text-anchor="middle" font-family="DM Serif Display" font-size="18" fill="#2B2D42">LangGraph: Nodes &amp; Edges</text>
+          <text x="450" y="70" text-anchor="middle" font-size="11" fill="#6B6D7B">Each agent is a node. Edges define how they connect.</text>
+        </g>
+
+        <!-- arrow marker -->
+        <defs>
+          <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+            <path d="M0,0 L0,6 L9,3 z" fill="#6B6D7B"/>
+          </marker>
+        </defs>
+
+      </svg>
+    </div>
+
+    <!-- Legend -->
+    <div class="legend">
+      <div class="legend-item"><span class="legend-dot" style="background:#E87A2E"></span>Coordinator</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#4285F4"></span>Worker (Planner)</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#4CAF50"></span>Worker (Booker)</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#7C4DFF"></span>Worker (Notifier)</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#FFE082;border:1px solid #E0A800"></span>Shared State</div>
+    </div>
+
+    <!-- Narration -->
+    <div class="scene-body">
+      <div class="narration" id="narrationBox">
+        <h3 id="narrTitle">A single agent gets overloaded</h3>
+        <p id="narrText1">Imagine asking one assistant to <em>plan, book, and notify</em> — all at once. It can do everything, but it juggles too much. Quality drops, mistakes happen, and there's no clean way to swap out one piece.</p>
+        <p id="narrText2">In real systems, we want specialists. Let's see how splitting work across multiple agents fixes this.</p>
+      </div>
+      <div class="recap-box">
+        <h4>Key Insight</h4>
+        <ul id="recapList">
+          <li>One agent doing too many tasks creates a bottleneck</li>
+          <li>Quality and reliability drop as complexity grows</li>
+          <li>We need a team — coordinator + workers</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="controls">
+      <button class="btn btn-outline" id="prevBtn" disabled>← Previous</button>
+      <button class="replay-btn" id="replayBtn">↻ Replay animation</button>
+      <button class="btn btn-primary" id="nextBtn">Next step →</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ====== STATE ======
+let currentStep = 1;
+const TOTAL_STEPS = 5;
+let activeTimeouts = [];
+
+// ====== STEP CONTENT ======
+const STEPS = {
+  1: {
+    label: 'STEP 1 OF 5',
+    title: "When one agent isn't enough",
+    intro: "A single AI agent can answer questions — but ask it to plan a trip, book it, and email confirmations, and it juggles too many things at once. Let's see what happens.",
+    narrTitle: 'A single agent gets overloaded',
+    narrText1: 'Imagine asking one assistant to <em>plan, book, and notify</em> — all at once. It can do everything, but it juggles too much. Quality drops, mistakes happen, and there\'s no clean way to swap out one piece.',
+    narrText2: 'In real systems, we want specialists. Let\'s see how splitting work across multiple agents fixes this.',
+    recap: [
+      'One agent doing too many tasks creates a bottleneck',
+      'Quality and reliability drop as complexity grows',
+      'We need a team — coordinator + workers'
+    ]
+  },
+  2: {
+    label: 'STEP 2 OF 5',
+    title: 'Meet the team: Coordinator + Workers',
+    intro: 'Instead of one overloaded agent, we have a Coordinator that understands the goal, and specialist Workers who each do one thing well.',
+    narrTitle: 'Specialists working under a leader',
+    narrText1: 'The <em>Coordinator</em> reads the user\'s request and decides who should handle what. Each <strong>Worker</strong> is a focused expert — one plans, one books, one notifies.',
+    narrText2: 'This is called the <em>coordinator-worker pattern</em>. It\'s the most common multi-agent design — easier to test, easier to improve, and more reliable in production.',
+    recap: [
+      'Coordinator = the manager who delegates',
+      'Workers = specialists with narrow, deep skills',
+      'Each piece is testable and swappable'
+    ]
+  },
+  3: {
+    label: 'STEP 3 OF 5',
+    title: 'Message passing: how agents talk',
+    intro: 'Agents don\'t share thoughts directly — they pass structured messages. Watch a request flow from user → coordinator → worker → back.',
+    narrTitle: 'Messages are the language of agents',
+    narrText1: 'When the Coordinator delegates, it sends a <em>message</em> with the task and context. The Worker reads it, does the job, and sends a <em>reply message</em> back.',
+    narrText2: 'Messages are structured (think JSON), <strong>not free-form chatter</strong>. This makes the system predictable and lets you log, replay, and debug every step.',
+    recap: [
+      'Agents communicate via structured messages',
+      'Each message carries a task + context',
+      'Replies flow back the same way — fully traceable'
+    ]
+  },
+  4: {
+    label: 'STEP 4 OF 5',
+    title: 'Shared state: one source of truth',
+    intro: 'As workers finish their parts, they update a shared scratchpad — the Shared State. Every agent reads and writes here, so nothing is lost.',
+    narrTitle: 'A common notebook everyone uses',
+    narrText1: 'The <em>Shared State</em> is like a whiteboard the whole team sees. The Planner writes the itinerary into it. The Booker reads it, books, and writes confirmation numbers. The Notifier reads everything and sends one final email.',
+    narrText2: 'Without shared state, agents would have to <strong>repeat themselves</strong> in every message. With it, the workflow stays clean and each agent only sees what it needs.',
+    recap: [
+      'Shared state = team whiteboard',
+      'Agents read what they need, write what they produce',
+      'No duplicated context in every message'
+    ]
+  },
+  5: {
+    label: 'STEP 5 OF 5',
+    title: 'The LangGraph view: nodes & edges',
+    intro: 'In LangGraph, every agent becomes a node, and the rules for who-talks-to-whom become edges. Your team is now a graph you can draw, inspect, and run.',
+    narrTitle: 'A graph you can see and reason about',
+    narrText1: 'Each agent is a <em>node</em>. The Coordinator\'s decision becomes a <strong>conditional edge</strong> — "if the task is planning, route to Planner; if booking, route to Booker."',
+    narrText2: 'This explicit graph is LangGraph\'s superpower: you can <em>visualize</em> the workflow, replay any run, and add new agents by adding new nodes — no rewriting the rest.',
+    recap: [
+      'Every agent = a node',
+      'Conditional edges decide the routing',
+      'Graphs are inspectable, testable, extensible'
+    ]
+  }
+};
+
+// ====== HELPERS ======
+function clearTimeouts() {
+  activeTimeouts.forEach(t => clearTimeout(t));
+  activeTimeouts = [];
+}
+function delay(fn, ms) {
+  const t = setTimeout(fn, ms);
+  activeTimeouts.push(t);
+  return t;
+}
+function showEl(id, slide) {
+  const el = document.getElementById(id);
+  if (el) {
+    el.classList.add('show');
+    if (slide) el.classList.add('show');
+  }
+}
+function hideEl(id) {
+  const el = document.getElementById(id);
+  if (el) {
+    el.classList.remove('show');
+  }
+}
+
+function clearMessages() {
+  document.getElementById('messages').innerHTML = '';
+}
+
+// Animate a message dot from (x1,y1) to (x2,y2)
+function flyMessage(x1, y1, x2, y2, color, label, duration = 1400) {
+  const msgGrp = document.getElementById('messages');
+  const NS = 'http://www.w3.org/2000/svg';
+
+  const g = document.createElementNS(NS, 'g');
+  g.setAttribute('class', 'msg-dot');
+
+  const path = document.createElementNS(NS, 'path');
+  const midX = (x1 + x2) / 2;
+  const midY = (y1 + y2) / 2 - 30;
+  path.setAttribute('d', `M ${x1} ${y1} Q ${midX} ${midY} ${x2} ${y2}`);
+  path.setAttribute('stroke', color);
+  path.setAttribute('stroke-width', '2.5');
+  path.setAttribute('fill', 'none');
+  path.setAttribute('stroke-dasharray', '6 4');
+  path.setAttribute('opacity', '0.6');
+  g.appendChild(path);
+
+  // Animated dot using setInterval
+  const dot = document.createElementNS(NS, 'circle');
+  dot.setAttribute('r', '8');
+  dot.setAttribute('fill', color);
+  dot.setAttribute('cx', x1);
+  dot.setAttribute('cy', y1);
+  g.appendChild(dot);
+
+  if (label) {
+    const txt = document.createElementNS(NS, 'text');
+    txt.setAttribute('font-size', '10');
+    txt.setAttribute('font-weight', '700');
+    txt.setAttribute('fill', '#fff');
+    txt.setAttribute('text-anchor', 'middle');
+    txt.setAttribute('x', x1);
+    txt.setAttribute('y', y1 + 3.5);
+    txt.textContent = label;
+    g.appendChild(txt);
+    g.querySelector('text').style.transition = `all ${duration}ms ease-in-out`;
+  }
+  dot.style.transition = `all ${duration}ms ease-in-out`;
+
+  msgGrp.appendChild(g);
+
+  // Trigger animation
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      dot.setAttribute('cx', x2);
+      dot.setAttribute('cy', y2);
+      if (g.querySelector('text')) {
+        g.querySelector('text').setAttribute('x', x2);
+        g.querySelector('text').setAttribute('y', y2 + 3.5);
+      }
+    });
+  });
+
+  // Fade out path after delivery
+  delay(() => {
+    path.style.transition = 'opacity 0.5s';
+    path.style.opacity = '0';
+    dot.style.transition = 'opacity 0.4s';
+    dot.style.opacity = '0';
+  }, duration + 200);
+  delay(() => { g.remove(); }, duration + 800);
+}
+
+function resetStage() {
+  clearTimeouts();
+  clearMessages();
+  ['userMsg', 'singleAgent', 'jugglingIcons', 'overwhelmIndicator',
+   'coordinator', 'worker1', 'worker2', 'worker3',
+   'connections', 'sharedState', 'langGraphView'].forEach(hideEl);
+}
+
+// ====== ANIMATIONS PER STEP ======
+function runStep1() {
+  resetStage();
+  delay(() => showEl('userMsg'), 200);
+  delay(() => showEl('singleAgent'), 900);
+  delay(() => {
+    showEl('jugglingIcons');
+  }, 1700);
+  delay(() => {
+    showEl('overwhelmIndicator');
+    // Add wobble
+    const agent = document.getElementById('singleAgent');
+    agent.style.transformOrigin = '540px 240px';
+    agent.style.animation = 'pulse 1.4s infinite';
+  }, 2700);
+}
+
+function runStep2() {
+  resetStage();
+  // Hide single agent view first (already hidden by reset)
+  delay(() => showEl('userMsg'), 200);
+  delay(() => showEl('coordinator'), 800);
+  delay(() => showEl('worker1'), 1300);
+  delay(() => showEl('worker2'), 1500);
+  delay(() => showEl('worker3'), 1700);
+  delay(() => showEl('connections'), 2100);
+}
+
+function runStep3() {
+  resetStage();
+  showEl('userMsg');
+  showEl('coordinator');
+  showEl('worker1');
+  showEl('worker2');
+  showEl('worker3');
+  showEl('connections');
+
+  // User -> Coordinator
+  delay(() => flyMessage(180, 240, 425, 130, '#E87A2E', 'task'), 400);
+  // Coordinator -> Planner
+  delay(() => flyMessage(450, 140, 230, 310, '#4285F4', 'plan'), 1900);
+  // Coordinator -> Booker
+  delay(() => flyMessage(450, 140, 450, 370, '#4CAF50', 'book'), 2400);
+  // Coordinator -> Notifier
+  delay(() => flyMessage(450, 140, 670, 310, '#7C4DFF', 'mail'), 2900);
+  // Workers reply back
+  delay(() => flyMessage(230, 310, 450, 140, '#4285F4', 'done'), 4600);
+  delay(() => flyMessage(450, 370, 450, 156, '#4CAF50', 'done'), 5000);
+  delay(() => flyMessage(670, 310, 450, 140, '#7C4DFF', 'done'), 5400);
+}
+
+function runStep4() {
+  resetStage();
+  showEl('userMsg');
+  showEl('coordinator');
+  showEl('worker1');
+  showEl('worker2');
+  showEl('worker3');
+  delay(() => showEl('sharedState'), 400);
+
+  // Workers writing to / reading from shared state
+  delay(() => flyMessage(230, 310, 420, 230, '#4285F4', 'write'), 1400);
+  delay(() => flyMessage(380, 230, 450, 370, '#4CAF50', 'read'), 2800);
+  delay(() => flyMessage(450, 370, 480, 230, '#4CAF50', 'write'), 4000);
+  delay(() => flyMessage(420, 230, 670, 310, '#7C4DFF', 'read'), 5400);
+}
+
+function runStep5() {
+  resetStage();
+  // Hide everything else, show LangGraph
+  delay(() => {
+    showEl('langGraphView');
+  }, 300);
+}
+
+const stepRunners = {
+  1: runStep1,
+  2: runStep2,
+  3: runStep3,
+  4: runStep4,
+  5: runStep5
+};
+
+// ====== UI WIRING ======
+function updateUI() {
+  const data = STEPS[currentStep];
+  document.getElementById('stepLabel').textContent = data.label;
+  document.getElementById('stepTitle').textContent = data.title;
+  document.getElementById('stepIntro').textContent = data.intro;
+  document.getElementById('narrTitle').textContent = data.narrTitle;
+  document.getElementById('narrText1').innerHTML = data.narrText1;
+  document.getElementById('narrText2').innerHTML = data.narrText2;
+
+  const recapList = document.getElementById('recapList');
+  recapList.innerHTML = '';
+  data.recap.forEach(item => {
+    const li = document.createElement('li');
+    li.textContent = item;
+    recapList.appendChild(li);
+  });
+
+  document.getElementById('prevBtn').disabled = currentStep === 1;
+  const nextBtn = document.getElementById('nextBtn');
+  if (currentStep === TOTAL_STEPS) {
+    nextBtn.textContent = 'Restart from start ↻';
+  } else {
+    nextBtn.textContent = 'Next step →';
+  }
+
+  // Update step pills
+  document.querySelectorAll('.step-pill').forEach((pill, idx) => {
+    pill.classList.remove('active', 'done');
+    const stepNum = idx + 1;
+    if (stepNum === currentStep) pill.classList.add('active');
+    else if (stepNum < currentStep) pill.classList.add('done');
+  });
+}
+
+function goToStep(n) {
+  currentStep = n;
+  updateUI();
+  stepRunners[n]();
+}
+
+document.getElementById('nextBtn').addEventListener('click', () => {
+  if (currentStep < TOTAL_STEPS) goToStep(currentStep + 1);
+  else goToStep(1);
+});
+document.getElementById('prevBtn').addEventListener('click', () => {
+  if (currentStep > 1) goToStep(currentStep - 1);
+});
+document.getElementById('replayBtn').addEventListener('click', () => {
+  stepRunners[currentStep]();
+});
+document.querySelectorAll('.step-pill').forEach((pill, idx) => {
+  pill.addEventListener('click', () => goToStep(idx + 1));
+});
+
+// Initial run
+updateUI();
+goToStep(1);
+</script>
+</body>
+</html>
